@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>MARKELINE バナーテンプレート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+/* MARKELINE banner template. Change data-preset to switch canvas size. Values come only from tokens.css. */
+*{box-sizing:border-box}
+body{margin:0;padding:40px;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(--ml-ink);display:grid;gap:40px;justify-items:start;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--ml-font-mono)}
+.canvas{position:relative;overflow:hidden;background:var(--ml-paper);flex:0 0 auto}
+.canvas[data-preset="ogp"]{width:1200px;height:630px}
+.canvas[data-preset="line_rich_menu_large"]{width:2500px;height:1686px}
+.canvas[data-preset="line_rich_menu_compact"]{width:2500px;height:843px}
+.canvas[data-preset="line_profile_icon"]{width:640px;height:640px}
+.canvas[data-preset="line_card_message_square"]{width:1040px;height:1040px}
+.canvas[data-preset="line_card_message_3_2"]{width:1040px;height:693px}
+.canvas[data-preset="instagram_square"]{width:1080px;height:1080px}
+.canvas[data-preset="instagram_portrait"]{width:1080px;height:1350px}
+.canvas[data-preset="instagram_story"]{width:1080px;height:1920px}
+.canvas[data-preset="youtube_thumbnail"]{width:1280px;height:720px}
+.canvas[data-preset="x_header"]{width:1500px;height:500px}
+/* A: dark */
+.dark{background:var(--ml-teal-900);color:var(--ml-paper);padding:72px 80px;display:flex;flex-direction:column;justify-content:center;gap:24px}
+.dark .eyebrow{font-family:var(--ml-font-mono);font-size:22px;font-weight:700;letter-spacing:var(--ml-ls-caps);text-transform:uppercase;color:var(--ml-brand-yellow);margin:0}
+.dark .catch{font-size:72px;font-weight:900;line-height:1.25;letter-spacing:var(--ml-ls-tight);margin:0;word-break:keep-all;overflow-wrap:anywhere}
+.dark .catch .em{color:var(--ml-brand-yellow)}
+.dark .sub{font-size:26px;font-weight:500;color:var(--ml-teal-100);margin:0}
+.dark .logo{position:absolute;right:60px;bottom:32px;width:225px}
+/* B: light with CTA band */
+.light{background:var(--ml-teal-50);padding:72px 80px 0;display:flex;flex-direction:column;gap:20px}
+.light .catch{font-size:64px;font-weight:900;line-height:1.25;letter-spacing:var(--ml-ls-tight);margin:0;word-break:keep-all}
+.light .sub{font-size:24px;font-weight:500;color:var(--ml-sub);margin:0}
+.light .logo{position:absolute;left:80px;bottom:calc(15% + 32px);width:200px}
+.light .cta{position:absolute;left:0;right:0;bottom:0;height:15%;background:var(--ml-brand-yellow);color:var(--ml-ink);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900}
+/* rich menu 3x2 */
+.menu{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4px;background:var(--ml-line);width:100%;height:100%}
+.cell{background:var(--ml-paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+.cell .ico{width:236px;height:236px;border-radius:50%;background:var(--ml-teal-50);color:var(--ml-brand-teal);display:grid;place-items:center;font-family:var(--ml-font-mono);font-size:96px;font-weight:700}
+.cell .label{font-size:92px;font-weight:900;line-height:1}
+.cell .hint{font-size:48px;font-weight:500;color:var(--ml-sub)}
+.cell--action{background:var(--ml-brand-yellow)}
+.cell--action .ico{background:var(--ml-paper);color:var(--ml-ink)}
+.cell--action .hint{color:var(--ml-ink)}
+</style>
+</head>
+<body>
+
+<!-- OGP, type A dark -->
+<section class="canvas dark" data-preset="ogp">
+  <p class="eyebrow">LINE公式・Lステップ 構築運用</p>
+  <h1 class="catch">LINE公式を、<br><span class="em">成果が出る</span>仕組みに。</h1>
+  <p class="sub">構築から運用改善・内製化まで伴走 ／ 株式会社MARKELINE</p>
+  <img class="logo" src="../assets/markeline_logo_white.png" alt="">
+</section>
+
+<!-- Card message, type B light -->
+<section class="canvas light" data-preset="line_card_message_3_2">
+  <h1 class="catch">9月の配信計画、<br>できました。</h1>
+  <p class="sub">配信前にテスト配信をお送りします。</p>
+  <img class="logo" src="../assets/markeline_logo_color.png" alt="">
+  <div class="cta">配信計画を確認する</div>
+</section>
+
+<!-- Rich menu large, 3x2 -->
+<section class="canvas" data-preset="line_rich_menu_large">
+  <div class="menu">
+    <div class="cell"><div class="ico">01</div><div class="label">予約</div><div class="hint">空き状況を見る</div></div>
+    <div class="cell"><div class="ico">02</div><div class="label">メニュー</div><div class="hint">料金・内容</div></div>
+    <div class="cell"><div class="ico">03</div><div class="label">アクセス</div><div class="hint">地図・駐車場</div></div>
+    <div class="cell cell--action"><div class="ico">04</div><div class="label">クーポン</div><div class="hint">今月の特典</div></div>
+    <div class="cell"><div class="ico">05</div><div class="label">スタッフ</div><div class="hint">担当を選ぶ</div></div>
+    <div class="cell"><div class="ico">06</div><div class="label">お問い合わせ</div><div class="hint">チャットで相談</div></div>
+  </div>
+</section>
+
+</body>
+</html>

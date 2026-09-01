@@ -1,0 +1,45 @@
+{
+  "skill_name": "markeline-design-system",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "マーケラインのLINE構築サービスのLPを1ページのHTMLで作って。ファーストビュー、課題、できること、料金目安、事例、流れ、FAQ、CTAの構成。スマホでも崩れないように。",
+      "expected_output": "templates/lp.html を土台にした単一 HTML。色は tokens.css の変数のみ、フォントは Zen Kaku Gothic New / IBM Plex Mono、CTA だけが brand-yellow、ロゴは公式 PNG、lint 0 件、モバイル幅で崩れない。",
+      "files": [],
+      "assertions": [
+        "lint_tokens.py --strict の出力が OK である",
+        "font-family に Zen Kaku Gothic New と IBM Plex Mono 以外の書体名が出てこない",
+        "brand-yellow (#F9BB00) が使われる要素の役割が CTA ボタン 1 種類に限られる",
+        "白地の本文に #00979C が使われていない（teal-600 以上）",
+        "ロゴが assets/markeline_logo_color.png または white.png の img で置かれ、テキスト再現されていない",
+        "未確認の実績数値（%や社数）が創作されていない、または『例』『要確認』と明示されている"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "セミナー冒頭で使う自己紹介と実績のスライドを3枚、1920x1080のHTMLで作って。1枚目は会社紹介、2枚目は3社の事例、3枚目は今日のゴール。あとでPDFにするので印刷用CSSも入れて。",
+      "expected_output": "templates/slide.html を土台にした 3 セクション。ヘッダー（ワードマーク+資料名）とフッター（ロゴ+ページ番号 mono）、KPI は mono、事例カードは teal 上辺アクセント、ダーク面はゴールのスライドに 1 回だけ、@media print で 1 枚 1 ページ。",
+      "files": [],
+      "assertions": [
+        "lint_tokens.py --strict の出力が OK である",
+        "各 .slide が 1920x1080 で overflow hidden",
+        "ページ番号と数値が IBM Plex Mono で、mono の span 内に漢字かなが無い",
+        "teal-900 または teal-800 のダーク面は 3 枚中 1 枚以下",
+        "@media print で page-break-after: always がある"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "LINE公式のリッチメニュー（大サイズ）を6分割で作りたい。予約、メニュー、アクセス、クーポン、スタッフ、お問い合わせ。画像で書き出せる形で。",
+      "expected_output": "templates/banner.html の line_rich_menu_large プリセット（2500x1686）を 3×2 グリッドで使い、各セルは paper 面 + line 罫、ラベルは ink 900、アイコンは brand-teal、クーポンだけ yellow 面（1 役割）、render_preview.py で PNG 化。",
+      "files": [],
+      "assertions": [
+        "lint_tokens.py --strict の出力が OK である",
+        "キャンバスが 2500x1686 である",
+        "brand-yellow の面は 6 セル中 1 セル以下",
+        "セル間の罫線が line トークンで、純グレーが無い",
+        "PNG が render_preview.py で生成されている"
+      ]
+    }
+  ]
+}

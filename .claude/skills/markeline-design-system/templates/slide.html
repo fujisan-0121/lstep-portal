@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>MARKELINE スライドテンプレート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+/* MARKELINE slide template, 1920x1080. Values come only from tokens.css. */
+*{box-sizing:border-box}
+body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(--ml-ink);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--ml-font-mono)}
+.slide{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ml-paper);display:flex;flex-direction:column}
+.slide+.slide{margin-top:40px}
+.header{flex:0 0 auto;height:104px;display:flex;align-items:center;justify-content:space-between;padding:0 88px;border-bottom:var(--ml-bw-heavy) solid var(--ml-ink)}
+.wordmark{font-size:26px;font-weight:900;letter-spacing:.01em}
+.wordmark .marke{color:var(--ml-yellow-600)}
+.wordmark .line{color:var(--ml-teal-700)}
+.doc-meta{text-align:right;color:var(--ml-sub)}
+.doc-name{font-size:15px;font-weight:700}
+.doc-date{font-size:13px;margin-top:4px}
+.content{flex:1 1 auto;padding:0 88px;display:flex;flex-direction:column;justify-content:center;gap:32px}
+.footer{flex:0 0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 88px;font-size:13px;color:var(--ml-sub)}
+.footer .brand{display:flex;align-items:center;gap:10px}
+.footer img{height:44px;width:auto}
+.eyebrow{font-family:var(--ml-font-mono);font-size:18px;font-weight:700;letter-spacing:var(--ml-ls-caps);text-transform:uppercase;color:var(--ml-teal-600);margin:0}
+.headline{font-size:52px;line-height:1.3;font-weight:900;letter-spacing:var(--ml-ls-tight);margin:0;word-break:keep-all;overflow-wrap:anywhere}
+.headline .mark{color:var(--ml-teal-700)}
+.subhead{margin:0;font-size:26px;line-height:1.6;font-weight:500;color:var(--ml-sub);max-width:1500px}
+/* C: KPI */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.kpi{padding:32px 28px;border:var(--ml-bw-hair) solid var(--ml-line);border-top:var(--ml-bw-accent) solid var(--ml-brand-teal);background:var(--ml-paper)}
+.kpi--focus{background:var(--ml-yellow-50);border-top-color:var(--ml-brand-yellow)}
+.kpi .num{font-family:var(--ml-font-mono);font-size:64px;font-weight:700;line-height:1;color:var(--ml-teal-700)}
+.kpi .unit{font-size:24px;font-weight:700;color:var(--ml-sub);margin-left:6px}
+.kpi .label{margin-top:16px;font-size:20px;font-weight:700}
+.kpi .note{margin-top:8px;font-size:16px;color:var(--ml-sub)}
+/* D: cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.card{padding:32px;border:var(--ml-bw-hair) solid var(--ml-line);border-top:var(--ml-bw-accent) solid var(--ml-brand-teal);background:var(--ml-paper)}
+.card h3{margin:0;font-size:28px;font-weight:900;line-height:1.3}
+.card .cat{display:inline-block;margin-top:8px;font-size:16px;font-weight:700;color:var(--ml-sub)}
+.card ul{margin:20px 0 0;padding:0;list-style:none;display:grid;gap:12px}
+.card li{font-size:20px;font-weight:500;color:var(--ml-ink);padding-left:20px;position:relative}
+.card li::before{content:"";position:absolute;left:0;top:12px;width:8px;height:8px;border-radius:50%;background:var(--ml-brand-teal)}
+.card li .mono{color:var(--ml-teal-700);font-weight:700}
+/* E: table */
+.table{width:100%;border-collapse:collapse;font-size:20px}
+.table th{background:var(--ml-teal-50);color:var(--ml-teal-800);text-align:left;padding:14px 20px;border:var(--ml-bw-hair) solid var(--ml-line);font-weight:700}
+.table td{padding:14px 20px;border:var(--ml-bw-hair) solid var(--ml-line);vertical-align:top}
+.table .num{font-family:var(--ml-font-mono);text-align:right;white-space:nowrap;color:var(--ml-teal-700);font-weight:700}
+.table tr.total td{background:var(--ml-yellow-50);font-weight:900}
+/* G: inverted banner */
+.banner{background:var(--ml-teal-900);color:var(--ml-paper);padding:28px 40px;font-size:28px;font-weight:700;line-height:1.6;display:flex;align-items:center;gap:20px}
+.banner .em{color:var(--ml-brand-yellow);font-weight:900}
+.banner .tag{flex:0 0 auto;background:var(--ml-brand-yellow);color:var(--ml-ink);font-size:16px;font-weight:900;padding:8px 14px;letter-spacing:.04em}
+/* A/H: dark */
+.slide--dark{background:var(--ml-teal-900);color:var(--ml-paper)}
+.slide--dark .content{align-items:flex-start}
+.slide--dark .eyebrow{color:var(--ml-brand-yellow)}
+.slide--dark .headline{font-size:64px;color:var(--ml-paper)}
+.slide--dark .subhead{color:var(--ml-teal-100)}
+.slide--dark .footer{color:var(--ml-teal-200)}
+.slide--dark .logo-top{position:absolute;left:88px;top:64px;width:200px}
+.page{font-family:var(--ml-font-mono);font-weight:700}
+@page{size:1920px 1080px;margin:0}
+@media print{body{background:var(--ml-paper)}.slide{page-break-after:always;margin:0}.slide+.slide{margin-top:0}}
+</style>
+</head>
+<body>
+
+<!-- A: cover -->
+<section class="slide slide--dark" id="s01">
+  <img class="logo-top" src="../assets/markeline_logo_white.png" alt="MARKELINE">
+  <div class="content">
+    <p class="eyebrow">LINE / Lステップ 運用改善のご提案</p>
+    <h1 class="headline">LINE公式を、<br>成果が出る仕組みに。</h1>
+    <p class="subhead">株式会社〇〇 様 ／ <span class="mono">2026-09-01</span></p>
+  </div>
+  <div class="footer"><div class="brand">株式会社MARKELINE ／ 社外秘</div><div class="page">01 / 04</div></div>
+</section>
+
+<!-- C: KPI -->
+<section class="slide" id="s02">
+  <div class="header">
+    <div class="wordmark"><span class="marke">MARKE</span><span class="line">LINE</span></div>
+    <div class="doc-meta"><div class="doc-name">LINE / Lステップ 運用改善のご提案</div><div class="doc-date mono">2026-09-01</div></div>
+  </div>
+  <div class="content">
+    <p class="eyebrow"><span class="mono">01</span> 現状</p>
+    <h2 class="headline">友だちは増えている。<span class="mark">売上への導線</span>がまだない。</h2>
+    <div class="kpis">
+      <div class="kpi"><div><span class="num">1,240</span><span class="unit">人</span></div><div class="label">友だち数</div><div class="note">直近6か月 +38%（例）</div></div>
+      <div class="kpi"><div><span class="num">2</span><span class="unit">本/月</span></div><div class="label">配信数</div><div class="note">一斉配信のみ</div></div>
+      <div class="kpi kpi--focus"><div><span class="num">0.8</span><span class="unit">%</span></div><div class="label">配信→来店率</div><div class="note">ここを上げる（例）</div></div>
+      <div class="kpi"><div><span class="num">0</span><span class="unit">本</span></div><div class="label">ステップ配信</div><div class="note">未設定</div></div>
+    </div>
+    <p class="subhead" style="font-size:18px">※ 数値はサンプルです。実データに差し替え、未確認の値は掲載しません。</p>
+  </div>
+  <div class="footer"><div class="brand"><img src="../assets/markeline_logo_color.png" alt="">株式会社MARKELINE ／ 社外秘</div><div class="page">02 / 04</div></div>
+</section>
+
+<!-- D + G: cases + banner -->
+<section class="slide" id="s03">
+  <div class="header">
+    <div class="wordmark"><span class="marke">MARKE</span><span class="line">LINE</span></div>
+    <div class="doc-meta"><div class="doc-name">LINE / Lステップ 運用改善のご提案</div><div class="doc-date mono">2026-09-01</div></div>
+  </div>
+  <div class="content">
+    <p class="eyebrow"><span class="mono">02</span> 事例</p>
+    <h2 class="headline">同じ課題を、<span class="mark">仕組み</span>で変えた3社</h2>
+    <div class="cards">
+      <article class="card"><h3>飲食チェーン A社</h3><span class="cat">飲食</span><ul><li>4か月で <span class="mono">10,000</span> 人登録（例）</li><li>売上前年比 <span class="mono">+14</span>%（例）</li></ul></article>
+      <article class="card"><h3>クリニック B</h3><span class="cat">医療・美容</span><ul><li>回答率 <span class="mono">83.6</span>%（例）</li><li>予約リマインドで無断キャンセル減（例）</li></ul></article>
+      <article class="card"><h3>スクール C</h3><span class="cat">教育</span><ul><li>月平均成約 <span class="mono">3</span> 件 → <span class="mono">10</span> 件（例）</li><li>問い合わせ対応工数 <span class="mono">-93</span>%（例）</li></ul></article>
+    </div>
+    <div class="banner"><span class="tag">結論</span><span>ツールではなく、<span class="em">顧客の行動を設計する</span>ことで数字が動きます。</span></div>
+  </div>
+  <div class="footer"><div class="brand"><img src="../assets/markeline_logo_color.png" alt="">株式会社MARKELINE ／ 社外秘</div><div class="page">03 / 04</div></div>
+</section>
+
+<!-- H: closing -->
+<section class="slide slide--dark" id="s04">
+  <img class="logo-top" src="../assets/markeline_logo_white.png" alt="MARKELINE">
+  <div class="content">
+    <p class="eyebrow">次のステップ</p>
+    <h2 class="headline">まずは現状の配信を、<br>一緒に見直しませんか。</h2>
+    <p class="subhead">初回ヒアリング 60分 ／ できること・確認が必要なことを分けてご提示します。</p>
+    <p class="subhead mono" style="font-size:22px">info@markeline.net ／ markeline.net</p>
+  </div>
+  <div class="footer"><div class="brand">株式会社MARKELINE</div><div class="page">04 / 04</div></div>
+</section>
+
+</body>
+</html>

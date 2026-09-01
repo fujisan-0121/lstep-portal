@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LINE公式・Lステップの導入・構築・運用代行 | 株式会社MARKELINE</title>
+<meta property="og:title" content="LINE公式・Lステップの導入・構築・運用代行 | 株式会社MARKELINE">
+<meta property="og:image" content="ogp.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+/* MARKELINE LP template. Values come only from tokens.css (var(--ml-*)). */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ml-paper);color:var(--ml-ink);font-family:var(--ml-font-sans);font-size:var(--ml-fs-base);line-height:var(--ml-lh-relaxed);-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--ml-teal-700)}
+:focus-visible{outline:3px solid var(--ml-brand-teal);outline-offset:2px}
+.mono{font-family:var(--ml-font-mono)}
+.container{max-width:1120px;margin:0 auto;padding:0 var(--ml-sp-6)}
+.section{padding:var(--ml-sp-24) 0}
+.section--bg{background:var(--ml-bg)}
+.section--tint{background:var(--ml-teal-50)}
+.section--dark{background:var(--ml-teal-900);color:var(--ml-paper)}
+.eyebrow{font-family:var(--ml-font-mono);font-size:var(--ml-fs-xs);font-weight:700;letter-spacing:var(--ml-ls-caps);text-transform:uppercase;color:var(--ml-teal-600);margin:0 0 var(--ml-sp-3)}
+.section--dark .eyebrow{color:var(--ml-brand-yellow)}
+.h1{font-size:var(--ml-fs-4xl);font-weight:900;line-height:var(--ml-lh-tight);letter-spacing:var(--ml-ls-tight);margin:0 0 var(--ml-sp-6);word-break:keep-all;overflow-wrap:anywhere}
+.h2{font-size:var(--ml-fs-3xl);font-weight:900;line-height:1.3;letter-spacing:var(--ml-ls-tight);margin:0 0 var(--ml-sp-4);word-break:keep-all;overflow-wrap:anywhere}
+.h3{font-size:var(--ml-fs-xl);font-weight:900;line-height:var(--ml-lh-snug);margin:0 0 var(--ml-sp-3)}
+.lead{font-size:var(--ml-fs-md);font-weight:500;color:var(--ml-sub);max-width:640px;margin:0 0 var(--ml-sp-8)}
+.section--dark .lead{color:var(--ml-teal-100)}
+p{max-width:640px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--ml-sp-6)}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--ml-sp-6)}
+.card{background:var(--ml-paper);border:var(--ml-bw-hair) solid var(--ml-line);border-radius:var(--ml-r-md);padding:var(--ml-sp-6)}
+.card--accent{border-top:var(--ml-bw-accent) solid var(--ml-brand-teal)}
+.card--recommended{border:var(--ml-bw-rule) solid var(--ml-brand-teal)}
+.card p{color:var(--ml-sub);margin:0}
+.icon{width:48px;height:48px;border-radius:var(--ml-r-sm);background:var(--ml-teal-50);color:var(--ml-brand-teal);display:grid;place-items:center;margin-bottom:var(--ml-sp-4);font-family:var(--ml-font-mono);font-weight:700;font-size:var(--ml-fs-lg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:56px;padding:0 var(--ml-sp-8);border-radius:var(--ml-r-pill);font-weight:700;font-size:var(--ml-fs-base);text-decoration:none;border:var(--ml-bw-rule) solid transparent;transition:background .15s}
+.btn-primary{background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.btn-primary:hover{background:var(--ml-yellow-600)}
+.btn-secondary{background:var(--ml-paper);border-color:var(--ml-teal-600);color:var(--ml-teal-700)}
+.btn-secondary:hover{background:var(--ml-teal-50)}
+.section--dark .btn-secondary{background:transparent;border-color:var(--ml-paper);color:var(--ml-paper)}
+.btn-row{display:flex;gap:var(--ml-sp-4);flex-wrap:wrap}
+.kpi{display:flex;align-items:baseline;gap:var(--ml-sp-1)}
+.kpi__num{font-family:var(--ml-font-mono);font-size:var(--ml-fs-4xl);font-weight:700;line-height:1;color:var(--ml-teal-700)}
+.kpi__unit{font-size:var(--ml-fs-lg);font-weight:700;color:var(--ml-sub)}
+.kpi__label{font-size:var(--ml-fs-sm);font-weight:700;color:var(--ml-ink);margin-top:var(--ml-sp-2)}
+.chip{display:inline-block;font-size:var(--ml-fs-xs);font-weight:700;padding:var(--ml-sp-1) var(--ml-sp-3);border-radius:var(--ml-r-sm);background:var(--ml-teal-50);color:var(--ml-teal-800)}
+.chip--action{background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.table{width:100%;border-collapse:collapse;font-size:var(--ml-fs-sm)}
+.table th{background:var(--ml-teal-50);color:var(--ml-teal-800);text-align:left;font-weight:700;padding:var(--ml-sp-3) var(--ml-sp-4);border:var(--ml-bw-hair) solid var(--ml-line)}
+.table td{padding:var(--ml-sp-3) var(--ml-sp-4);border:var(--ml-bw-hair) solid var(--ml-line);vertical-align:top}
+.table .num{font-family:var(--ml-font-mono);text-align:right;white-space:nowrap}
+.table tr.total td{background:var(--ml-yellow-50);font-weight:900}
+.steps{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,1fr);gap:var(--ml-sp-6);counter-reset:step}
+.steps li{position:relative;padding-top:var(--ml-sp-12)}
+.steps li::before{counter-increment:step;content:"0" counter(step);position:absolute;top:0;left:0;width:40px;height:40px;border-radius:var(--ml-r-pill);background:var(--ml-teal-50);color:var(--ml-teal-700);font-family:var(--ml-font-mono);font-weight:700;display:grid;place-items:center}
+.steps strong{display:block;font-size:var(--ml-fs-md);font-weight:900;margin-bottom:var(--ml-sp-2)}
+.steps span{color:var(--ml-sub);font-size:var(--ml-fs-sm)}
+.faq{max-width:760px}
+.faq details{border-bottom:var(--ml-bw-hair) solid var(--ml-line);padding:var(--ml-sp-4) 0}
+.faq summary{cursor:pointer;font-weight:700;font-size:var(--ml-fs-md);list-style:none;display:flex;gap:var(--ml-sp-3)}
+.faq summary::before{content:"Q";font-family:var(--ml-font-mono);color:var(--ml-teal-600)}
+.faq p{color:var(--ml-sub);margin:var(--ml-sp-3) 0 0 var(--ml-sp-6)}
+.note{font-size:var(--ml-fs-xs);color:var(--ml-sub)}
+.header{position:sticky;top:0;z-index:10;background:var(--ml-paper);border-bottom:var(--ml-bw-hair) solid var(--ml-line)}
+.header .container{display:flex;align-items:center;justify-content:space-between;height:72px}
+.header img{height:64px;width:auto}
+.hero{padding:var(--ml-sp-24) 0 var(--ml-sp-20)}
+.hero .grid-2{align-items:center}
+.hero__visual{border-radius:var(--ml-r-lg);overflow:hidden;background:var(--ml-teal-800);aspect-ratio:4/3;display:grid;place-items:center;color:var(--ml-teal-200);font-family:var(--ml-font-mono)}
+.hero .h1{font-size:var(--ml-fs-4xl)}
+.footer{background:var(--ml-ink);color:var(--ml-teal-100);padding:var(--ml-sp-12) 0;font-size:var(--ml-fs-sm)}
+.footer .container{display:flex;justify-content:space-between;align-items:center;gap:var(--ml-sp-6);flex-wrap:wrap}
+.footer img{height:64px;width:auto}
+.footer a{color:var(--ml-paper)}
+@media (max-width:768px){
+  .section{padding:var(--ml-sp-12) 0}
+  .container{padding:0 var(--ml-sp-4)}
+  .grid-3,.grid-2,.steps{grid-template-columns:1fr}
+  .h1,.hero .h1{font-size:var(--ml-fs-2xl)}
+  .h2{font-size:var(--ml-fs-xl)}
+  .btn{min-height:52px;width:100%}
+  .header .container{height:60px}
+  .header img{height:52px}
+  .header .btn{min-height:40px;width:auto;padding:0 var(--ml-sp-4);font-size:var(--ml-fs-sm)}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <a href="#top" aria-label="MARKELINE"><img src="../assets/markeline_logo_color.png" alt="MARKELINE" width="90" height="64"></a>
+    <a class="btn btn-primary" href="#contact">まずは相談する</a>
+  </div>
+</header>
+
+<section class="section section--dark hero" id="top">
+  <div class="container grid-2">
+    <div>
+      <p class="eyebrow">LINE公式アカウント・Lステップ</p>
+      <h1 class="h1">LINE公式を、<br>成果が出る仕組みに。</h1>
+      <p class="lead">構築して終わりではなく、配信・改善・内製化まで伴走します。中小企業の「LINE担当」として、売上・再来店・問い合わせの導線を設計します。</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="#contact">LINE活用について相談する</a>
+        <a class="btn btn-secondary" href="#services">支援内容を見る</a>
+      </div>
+    </div>
+    <div class="hero__visual" role="img" aria-label="メインビジュアル">1200 × 900 visual</div>
+  </div>
+</section>
+
+<section class="section section--bg" id="problems">
+  <div class="container">
+    <p class="eyebrow">課題</p>
+    <h2 class="h2">こんなお悩みはありませんか</h2>
+    <div class="grid-3">
+      <div class="card"><div class="icon">01</div><h3 class="h3">友だちは増えたが売上につながらない</h3><p>配信が一斉送信だけで、誰に何を届けるかが設計されていない。</p></div>
+      <div class="card"><div class="icon">02</div><h3 class="h3">Lステップを入れたが使いこなせない</h3><p>シナリオ・タグ・リッチメニューが放置され、担当者も時間がない。</p></div>
+      <div class="card"><div class="icon">03</div><h3 class="h3">再来店や問い合わせの導線がない</h3><p>来店後・展示会後のフォローが属人化し、機会を逃している。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="services">
+  <div class="container">
+    <p class="eyebrow">MARKELINEができること</p>
+    <h2 class="h2">構築から運用改善、内製化まで</h2>
+    <p class="lead">LINE/Lステップを「配信ツール」ではなく、顧客教育・関係構築・CRMの仕組みとして設計します。</p>
+    <div class="grid-3">
+      <div class="card card--accent"><h3 class="h3">設計・構築</h3><p>目的に合わせた導線設計、シナリオ・タグ・リッチメニューの構築。</p></div>
+      <div class="card card--accent"><h3 class="h3">運用・改善</h3><p>配信計画、数値の確認、改善提案を毎月の運用として回します。</p></div>
+      <div class="card card--accent"><h3 class="h3">内製化支援</h3><p>担当者が自走できるまでのレクチャーとマニュアル整備。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint" id="results">
+  <div class="container">
+    <p class="eyebrow">実績</p>
+    <h2 class="h2">数字で見る支援</h2>
+    <div class="grid-3">
+      <div class="card"><div class="kpi"><span class="kpi__num">100</span><span class="kpi__unit">社以上</span></div><div class="kpi__label">導入支援（例）</div></div>
+      <div class="card"><div class="kpi"><span class="kpi__num">500</span><span class="kpi__unit">社以上</span></div><div class="kpi__label">相談実績（例）</div></div>
+      <div class="card"><div class="kpi"><span class="kpi__num">5</span><span class="kpi__unit">%</span></div><div class="kpi__label">Lステップ正規代理店 上位（例）</div></div>
+    </div>
+    <p class="note" style="margin-top:var(--ml-sp-4)">※ 数値は公開前に最新の確認済みデータへ差し替えてください。未確認の数値は掲載しません。</p>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="container">
+    <p class="eyebrow">料金目安</p>
+    <h2 class="h2">規模と目的に合わせた3つのプラン</h2>
+    <div class="grid-3">
+      <div class="card"><span class="chip">スタート</span><h3 class="h3" style="margin-top:var(--ml-sp-3)">構築のみ</h3><p>初期設計と構築。運用は自社で。</p></div>
+      <div class="card card--recommended"><span class="chip">おすすめ</span><h3 class="h3" style="margin-top:var(--ml-sp-3)">構築＋運用</h3><p>毎月の配信計画・改善提案まで伴走。</p></div>
+      <div class="card"><span class="chip">内製化</span><h3 class="h3" style="margin-top:var(--ml-sp-3)">運用＋育成</h3><p>担当者育成とマニュアル整備を含む。</p></div>
+    </div>
+    <table class="table" style="margin-top:var(--ml-sp-8)">
+      <thead><tr><th>項目</th><th>内容</th><th class="num">目安</th></tr></thead>
+      <tbody>
+        <tr><td>初期構築</td><td>設計・シナリオ・リッチメニュー</td><td class="num">要お見積り</td></tr>
+        <tr><td>月次運用</td><td>配信計画・数値確認・改善提案</td><td class="num">要お見積り</td></tr>
+        <tr class="total"><td>合計</td><td>ヒアリング後にご提示</td><td class="num">—</td></tr>
+      </tbody>
+    </table>
+    <p class="note" style="margin-top:var(--ml-sp-3)">※ IT導入補助金などは活用できる可能性があります。要件の確認が必要です。</p>
+  </div>
+</section>
+
+<section class="section section--bg" id="flow">
+  <div class="container">
+    <p class="eyebrow">導入の流れ</p>
+    <h2 class="h2">ご相談から運用開始まで</h2>
+    <ol class="steps">
+      <li><strong>ご相談</strong><span>現状と目的をヒアリング</span></li>
+      <li><strong>ご提案</strong><span>導線設計と見積のご提示</span></li>
+      <li><strong>構築</strong><span>シナリオ・メニューの実装</span></li>
+      <li><strong>運用開始</strong><span>配信計画に沿って伴走</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="container">
+    <p class="eyebrow">FAQ</p>
+    <h2 class="h2">よくあるご質問</h2>
+    <div class="faq">
+      <details><summary>LINE公式アカウントがまだありません。</summary><p>開設からご支援できます。まずは目的の整理からご相談ください。</p></details>
+      <details><summary>Lステップは必須ですか。</summary><p>目的次第です。LINE公式アカウント単体で十分な場合は、その旨をお伝えします。</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint" id="contact">
+  <div class="container">
+    <p class="eyebrow">お問い合わせ</p>
+    <h2 class="h2">自社に合う活用方法を聞く</h2>
+    <p class="lead">まずは現状をお聞かせください。できること、確認が必要なことを分けてお伝えします。</p>
+    <a class="btn btn-primary" href="#">導入・運用について相談する</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <img src="../assets/markeline_logo_white.png" alt="" width="90" height="64">
+    <div>株式会社MARKELINE<br><a href="#">会社概要</a> ・ <a href="#">プライバシーポリシー</a></div>
+    <div class="mono">© 2026 MARKELINE</div>
+  </div>
+</footer>
+
+</body>
+</html>
