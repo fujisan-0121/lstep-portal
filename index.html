@@ -711,6 +711,10 @@
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a1 1 0 0 1 1-1h6l5 5v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3zm7 0v4h4"/><path d="M7 9h6M7 12h6M7 15h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
         <span>資料ライブラリ</span>
       </a>
+      <a class="nav-item" onclick="showPage('kennshu', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h5a2 2 0 0 1 2 2v11a1.5 1.5 0 0 0-1.5-1.5H3V4zM17 4h-5a2 2 0 0 0-2 2v11a1.5 1.5 0 0 1 1.5-1.5H17V4z" stroke-linejoin="round"/></svg>
+        <span>Animo社長研修</span>
+      </a>
       <a class="nav-item" onclick="showPage('schedule', this)">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><rect x="3" y="4" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 8h14M7 2v4M13 2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
         <span>スケジュール</span>
@@ -718,6 +722,10 @@
       <a class="nav-item" onclick="showPage('jigyo', this)">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 3" stroke-linecap="round"/></svg>
         <span>課題・事業分解</span>
+      </a>
+      <a class="nav-item" onclick="showPage('homework', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="12" height="14" rx="2"/><path d="M7 8l2 2 4-4M7 13h6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>宿題・アクションプラン</span>
       </a>
       <a class="nav-item" onclick="showPage('qna', this)">
         <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M18 10c0 4-3.6 7-8 7a9 9 0 0 1-2-.22L4 18l.9-3.5A7 7 0 0 1 2 10C2 6 5.6 3 10 3s8 3 8 7z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg>
@@ -1356,7 +1364,7 @@ function showPage(id, el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(el) el.classList.add('active');
-  const titles = {dashboard:'ダッシュボード',documents:'資料ライブラリ',schedule:'スケジュール',jigyo:'課題・事業分解',qna:'Q&A ボード',members:'メンバー一覧',kennshu:'Animo社長研修'};
+  const titles = {dashboard:'ダッシュボード',documents:'資料ライブラリ',schedule:'スケジュール',jigyo:'課題・事業分解',qna:'Q&A ボード',members:'メンバー一覧',homework:'宿題・アクションプラン',kennshu:'Animo社長研修'};
   document.getElementById('page-title').textContent = titles[id] || id;
 }
 
@@ -1439,14 +1447,22 @@ function renderHw(){
         <span class="session-tag ${h.session==='common'?'tag-upcoming':'tag-active'}">${h.session==='common'?'共通':'第1回 宿題'}</span>
         <div class="hw-title" style="${h.done?'text-decoration:line-through;opacity:.5':''}">${h.title}</div>
         <div class="hw-desc">${h.desc}</div>
-        <div class="hw-due">期限：${h.due}</div>
+        ${h.due ? `<div class="hw-due">期限：${h.due}</div>` : ''}
       </div>
     </div>
   `).join('');
 }
 
+const HW_DONE_KEY = 'portal_hw_done';
+function loadHwDone(){
+  try{
+    const done = JSON.parse(localStorage.getItem(HW_DONE_KEY) || '[]');
+    HW.forEach((h,i)=>{ h.done = done.includes(i); });
+  }catch(e){}
+}
 function toggleHw(i){
   HW[i].done = !HW[i].done;
+  try{ localStorage.setItem(HW_DONE_KEY, JSON.stringify(HW.map((h,i)=>h.done?i:-1).filter(i=>i>=0))); }catch(e){}
   renderHw();
 }
 
@@ -1495,6 +1511,28 @@ function renderQna(){
   `).join('');
 }
 
+// ─── Chatwork 通知 ──────────────────────────────────────────────
+// APIトークンはこのファイルに書かない（公開サイトのため閲覧者全員に見える）。
+// tools/chatwork-proxy.gs を Google Apps Script にデプロイし、その「ウェブアプリURL」を設定する。
+// 未設定の間は送信をスキップし、各画面のフォールバック（手動通知／クリップボードコピー）に落ちる。
+const CHATWORK_PROXY_URL = '';
+
+function notifyChatwork(body){
+  if(!CHATWORK_PROXY_URL) return Promise.reject(new Error('CHATWORK_PROXY_URL が未設定です'));
+  return fetch(CHATWORK_PROXY_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    // text/plain にするとプリフライト(OPTIONS)が発生せず、GAS ウェブアプリにそのまま届く
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if(!data || !data.message_id) throw new Error(JSON.stringify(data));
+    return data;
+  });
+}
+
 function postQna(btn){
   const txt = document.getElementById('qna-text').value.trim();
   if(!txt) return;
@@ -1534,24 +1572,14 @@ ${txt}
 [hr]
 ※ 仕組み化研修ポータルサイトより自動送信[/info]`;
 
-  fetch('https://corsproxy.io/?url=https://api.chatwork.com/v2/rooms/64090725/messages', {
-    method: 'POST',
-    headers: {
-      'X-ChatWorkToken': '3853da61badb8cd3d49ea64b15d99f9b',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'body=' + encodeURIComponent(cwBody)
-  })
-  .then(r => r.json())
-  .then(data => {
-    if(data.message_id){
-      if(statusEl) statusEl.innerHTML = '<span style="color:#2A7A5E;font-weight:500">✓ Chatworkへ通知しました</span>';
-      if(btn){ btn.textContent = '投稿 ＆ Chatwork通知'; btn.disabled = false; }
-      setTimeout(() => { if(statusEl) statusEl.innerHTML = ''; }, 4000);
-    } else { throw new Error(); }
+  notifyChatwork(cwBody)
+  .then(() => {
+    if(statusEl) statusEl.innerHTML = '<span style="color:#2A7A5E;font-weight:500">✓ Chatworkへ通知しました</span>';
+    if(btn){ btn.textContent = '投稿 ＆ Chatwork通知'; btn.disabled = false; }
+    setTimeout(() => { if(statusEl) statusEl.innerHTML = ''; }, 4000);
   })
   .catch(() => {
-    // CORS fallback — still posted to board, just notify user
+    // 送信失敗（プロキシ未設定・ネットワーク等）— ボードには投稿済みなので、通知だけ手動を促す
     if(statusEl) statusEl.innerHTML = '<span style="color:var(--orange)">⚠ 投稿済み（Chatwork通知は手動で）</span>';
     if(btn){ btn.textContent = '投稿 ＆ Chatwork通知'; btn.disabled = false; }
     setTimeout(() => { if(statusEl) statusEl.innerHTML = ''; }, 5000);
@@ -1648,28 +1676,16 @@ function sendToChatwork(btn){
 
   if(btn){ btn.textContent = '送信中...'; btn.disabled = true; }
 
-  fetch('https://corsproxy.io/?url=https://api.chatwork.com/v2/rooms/64090725/messages', {
-    method: 'POST',
-    headers: {
-      'X-ChatWorkToken': '3853da61badb8cd3d49ea64b15d99f9b',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'body=' + encodeURIComponent(body)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.message_id){
-      if(btn){ btn.textContent = '✓ 送信完了！'; btn.style.background = '#2A7A5E'; }
-      setTimeout(()=>{ if(btn){ btn.textContent='💬 Chatworkに送信'; btn.style.background='#00b900'; btn.disabled=false; } }, 3000);
-    } else {
-      throw new Error(JSON.stringify(data));
-    }
+  notifyChatwork(body)
+  .then(() => {
+    if(btn){ btn.textContent = '✓ 送信完了！'; btn.style.background = '#2A7A5E'; }
+    setTimeout(()=>{ if(btn){ btn.textContent='💬 Chatworkに送信'; btn.style.background='#00b900'; btn.disabled=false; } }, 3000);
   })
   .catch(err => {
     console.error(err);
     navigator.clipboard.writeText(body).then(()=>{
       if(btn){ btn.textContent = '📋 コピーしました'; btn.style.background = '#2A5298'; btn.disabled = false; }
-      alert('ブラウザのCORS制限により直接送信できませんでした。\nテキストをクリップボードにコピーしました。\nChatworkに貼り付けて送信してください。');
+      alert('Chatworkへ直接送信できませんでした。\nテキストをクリップボードにコピーしました。\nChatworkに貼り付けて送信してください。');
       setTimeout(()=>{ if(btn){ btn.textContent='💬 Chatworkに送信'; btn.style.background='#00b900'; } }, 4000);
     }).catch(()=>{
       if(btn){ btn.textContent='💬 Chatworkに送信'; btn.style.background='#00b900'; btn.disabled=false; }
@@ -2135,6 +2151,7 @@ function applySessionStatuses(){
 // ─── INIT ──────────────────────────────────────────────────────
 function initPortal(){
   loadQnaFromStorage();
+  loadHwDone();
   renderDocs('all');
   renderHw();
   renderQna();
