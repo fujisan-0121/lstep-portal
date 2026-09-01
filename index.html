@@ -2168,12 +2168,44 @@ function updateStats(){
   if(qnaSub) qnaSub.textContent = `橋本氏回答あり ${answered}件`;
 }
 
-// Auto-focus pin input
+// ─── LOGIN ─────────────────────────────────────────────────────
+const PORTAL_PIN = "2001";
+
+function updatePinDots(){
+  const val = document.getElementById('pin-input').value;
+  for(let i=0;i<4;i++){
+    const dot = document.getElementById('d'+i);
+    if(dot) dot.classList.toggle('filled', i < val.length);
+  }
+}
+
+function tryLogin(){
+  const input = document.getElementById('pin-input');
+  const error = document.getElementById('pin-error');
+  if(input.value === PORTAL_PIN){
+    error.style.display = 'none';
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('portal').classList.add('show');
+    initPortal();
+  } else {
+    error.style.display = 'block';
+    input.value = '';
+    updatePinDots();
+    input.focus();
+  }
+}
+
+(function(){
+  const pinInput = document.getElementById('pin-input');
+  pinInput.addEventListener('input', updatePinDots);
+  pinInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') tryLogin();
+  });
+  pinInput.focus();
+})();
+
 // ─── STARTUP ───────────────────────────────────────────────────
-// 全ての const/function 宣言後に実行
-document.getElementById('login-screen').style.display = 'none';
-document.getElementById('portal').classList.add('show');
-initPortal();
+// portal の表示・initPortal() はログイン成功後に tryLogin() 内で実行する
 
 // end of script
 </script>
