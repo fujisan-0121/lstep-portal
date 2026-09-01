@@ -30,6 +30,11 @@
 
 「まずは相談する」「LINE活用について相談する」「自社に合う活用方法を聞く」「導入・運用について相談する」。「無料」「今だけ」「限定」を CTA に入れない。
 
+## 番号バッジ・アイコン
+
+`.icon`（48px の丸、`teal-50` 面）の中身は mono 700 / 20px / `brand-teal` がテンプレートの定義。この組み合わせは「太字 19px 以上」なので `brand-teal` でも通る。
+サイズやウェイトを落とすなら色を `teal-700` に変える。SVG アイコンは `currentColor` で `brand-teal`、線幅 2px 以上（3:1 の図形要件は満たす）。
+
 ## コンポーネント CSS クラス（templates/lp.html に定義済み）
 
 `.container` `.section` `.section--bg` `.section--dark` `.eyebrow` `.h1` `.h2` `.lead` `.grid-3` `.card` `.card--accent` `.btn` `.btn-primary` `.btn-secondary` `.kpi` `.kpi__num` `.kpi__unit` `.table` `.chip` `.chip--action` `.steps` `.faq`
