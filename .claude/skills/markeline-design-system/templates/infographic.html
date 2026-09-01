@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>MARKELINE インフォグラフィック提案書テンプレート</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<style>
+/* MARKELINE infographic proposal template, 1920x1080. Values come only from tokens.css. */
+*{box-sizing:border-box}
+body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(--ml-ink);-webkit-font-smoothing:antialiased;font-feature-settings:"palt"}
+.num{font-family:var(--ml-font-display);font-weight:700;letter-spacing:-.02em}
+.mono{font-family:var(--ml-font-mono)}
+.slide{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ml-paper);display:flex;flex-direction:column}
+.slide+.slide{margin-top:40px}
+/* title bar */
+.titlebar{position:relative;flex:0 0 120px;background:var(--ml-teal-700);color:var(--ml-paper);display:flex;align-items:center;padding-left:280px;font-size:44px;font-weight:900;letter-spacing:.02em;clip-path:polygon(0 0,100% 0,calc(100% - 60px) 100%,0 100%)}
+.titlebar .sub{font-size:22px;font-weight:500;margin-left:32px;color:var(--ml-teal-100)}
+.logobox{position:absolute;left:40px;top:0;width:200px;height:120px;background:var(--ml-paper);border-radius:0 0 var(--ml-r-md) var(--ml-r-md);display:grid;place-items:center;z-index:2}
+.logobox img{height:100px;width:auto}
+.body{flex:1 1 auto;padding:32px 72px;display:flex;flex-direction:column;gap:24px}
+.conclusion{flex:0 0 120px;display:flex;align-items:center;gap:24px;padding:0 72px;font-size:36px;font-weight:900;background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.conclusion.teal{background:var(--ml-teal-700);color:var(--ml-paper)}
+.conclusion.teal .em{color:var(--ml-brand-yellow)}
+.check{flex:0 0 64px;width:64px;height:64px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper);display:grid;place-items:center}
+.conclusion.teal .check{background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.check svg,.ico svg{width:60%;height:60%;fill:none;stroke:currentColor;stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round}
+.ico{color:var(--ml-brand-teal);display:grid;place-items:center}
+.marker{background:linear-gradient(transparent 55%,var(--ml-yellow-100) 55%)}
+.em-y{color:var(--ml-yellow-700)}
+.em-t{color:var(--ml-teal-700)}
+.pageno{position:absolute;right:40px;bottom:16px;font-family:var(--ml-font-mono);font-size:18px;color:var(--ml-sub)}
+/* cover */
+.cover{background:var(--ml-brand-teal);color:var(--ml-paper);justify-content:center;align-items:center;text-align:center}
+.cover .waves{position:absolute;inset:0;width:100%;height:100%;opacity:.35}
+.cover .logobox{left:60px;top:48px;border-radius:var(--ml-r-md)}
+.cover h1{position:relative;margin:0;font-size:80px;font-weight:900;letter-spacing:.04em;padding-bottom:20px;border-bottom:4px solid var(--ml-brand-yellow)}
+.cover p{position:relative;margin:28px 0 0;font-size:30px;font-weight:700;letter-spacing:.06em}
+.cover .company{position:absolute;right:72px;bottom:56px;font-size:26px;font-weight:700}
+/* goals */
+.goal{display:flex;align-items:center;gap:36px;background:var(--ml-bg);border-left:12px solid var(--ml-brand-yellow);padding:44px 48px;border-radius:0 var(--ml-r-md) var(--ml-r-md) 0;flex:0 0 auto}
+.body.center{justify-content:center}
+.goal .n{flex:0 0 80px;width:80px;height:80px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper);display:grid;place-items:center;font-size:44px;font-weight:900;font-family:var(--ml-font-display)}
+.goal .t{font-size:38px;font-weight:900;line-height:1.45}
+/* issues 2x2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1}
+.issue{background:var(--ml-bg);border:var(--ml-bw-hair) solid var(--ml-line);border-radius:var(--ml-r-md);padding:32px 36px;display:grid;grid-template-columns:140px 1fr;gap:28px;align-items:center}
+.issue .ico{width:140px;height:140px}
+.issue .ico svg{width:100%;height:100%}
+.issue h3{margin:0;font-size:34px;font-weight:900;display:flex;align-items:center;gap:16px}
+.issue h3 .n{width:52px;height:52px;border-radius:50%;background:var(--ml-brand-yellow);color:var(--ml-ink);display:grid;place-items:center;font-size:28px;font-family:var(--ml-font-display);font-weight:700}
+.issue ul{margin:14px 0 0;padding-left:22px;font-size:21px;line-height:1.6;color:var(--ml-sub);font-weight:500}
+.issue li::marker{color:var(--ml-brand-teal)}
+/* kpi rows */
+.kpirow{display:grid;grid-template-columns:120px 720px 1fr;align-items:center;gap:32px;border-bottom:var(--ml-bw-hair) solid var(--ml-line);padding:6px 0}
+.kpirow .ico{width:120px;height:110px}
+.kpirow .ico svg{width:96px;height:96px}
+.kpirow .big{font-size:128px;line-height:1;color:var(--ml-teal-700);white-space:nowrap}
+.kpirow .big .unit{font-family:var(--ml-font-sans);font-size:44px;font-weight:900;margin-left:8px}
+.kpirow.focus .big{color:var(--ml-brand-yellow)}  /* display exception: >=96px bold, labelled, once per slide, projection only */
+.kpirow .d{font-size:26px;font-weight:700;line-height:1.5}
+.kpirow .d small{display:block;font-size:20px;font-weight:500;color:var(--ml-sub)}
+/* statement */
+.statement{justify-content:center;align-items:center}
+.statement .tag{position:absolute;left:72px;top:48px;display:flex;align-items:center;gap:16px;font-size:36px;font-weight:900;border-bottom:4px solid var(--ml-brand-teal);padding-bottom:8px}
+.statement .tag .ico{width:56px;height:56px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper)}
+.statement .quote{font-size:120px;font-weight:900;line-height:1.3;letter-spacing:.08em;text-align:center;margin:0}
+.statement .quote .q{color:var(--ml-brand-yellow)}
+.statement .note{margin-top:48px;display:flex;align-items:center;gap:24px;font-size:32px;font-weight:700;line-height:1.6}
+.statement .note .ico{width:72px;height:72px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper)}
+/* compare */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:32px;flex:1}
+.panel{border-radius:var(--ml-r-md);overflow:hidden;background:var(--ml-bg);display:flex;flex-direction:column}
+.panel .head{padding:16px;text-align:center;font-size:30px;font-weight:900;background:var(--ml-sub);color:var(--ml-paper)}
+.panel.win{background:var(--ml-paper);border:var(--ml-bw-rule) solid var(--ml-teal-700)}
+.panel.win .head{background:var(--ml-teal-700)}
+.panel .in{padding:28px 32px;font-size:24px;line-height:1.6;font-weight:500;flex:1;display:flex;flex-direction:column;gap:20px}
+.panel .in b{font-size:28px;font-weight:900}
+.flow{display:flex;align-items:center;gap:14px;justify-content:center}
+.flow .node{flex:1;background:var(--ml-teal-50);border-radius:var(--ml-r-md);padding:18px 12px;text-align:center;font-size:20px;font-weight:700;color:var(--ml-teal-700)}
+.flow .node .ico{width:64px;height:64px;margin:0 auto 6px}
+.flow .arrow{color:var(--ml-brand-yellow);font-size:36px;font-weight:900;font-family:var(--ml-font-display)}
+.flow .x{color:var(--ml-sub);font-size:40px;font-weight:900}
+.panel:not(.win) .flow .node{background:var(--ml-line);color:var(--ml-ink)}
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:24px;flex:0 0 auto;table-layout:fixed}
+.tbl th{background:var(--ml-teal-700);color:var(--ml-paper);font-weight:700;padding:14px 20px;text-align:center;font-size:26px}
+.tbl th:first-child{border-radius:var(--ml-r-md) 0 0 0}.tbl th:last-child{border-radius:0 var(--ml-r-md) 0 0}
+.tbl td{padding:26px 20px;border-bottom:var(--ml-bw-hair) solid var(--ml-line);vertical-align:middle;line-height:1.4}
+.tbl tr:nth-child(even) td{background:var(--ml-bg)}
+.tbl td.task>div{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:12px;font-weight:700}
+.tbl td.task small{display:block;font-size:18px;font-weight:500;color:var(--ml-sub)}
+.tbl td.task .ico{width:48px;height:48px}
+.tbl td.action{padding-left:48px;position:relative;font-weight:500}
+.tbl td.action::before{content:"▶";position:absolute;left:16px;color:var(--ml-brand-yellow)}
+.tbl td.effect>div{font-weight:900;color:var(--ml-yellow-700);display:grid;grid-template-columns:40px 1fr;align-items:center;gap:12px}
+.tbl td.effect .check{width:40px;height:40px}
+/* before after */
+.ba{display:grid;grid-template-columns:1fr 100px 1fr;align-items:stretch;gap:20px}
+.ba .panel .in{align-items:center}
+.ba .bigarrow{display:grid;place-items:center;color:var(--ml-brand-yellow)}
+.ba .bigarrow svg{width:90px;height:90px;fill:currentColor}
+.fxcards{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.fxcard{display:grid;grid-template-columns:72px 1fr;gap:16px;align-items:center;background:var(--ml-paper);border:var(--ml-bw-rule) solid var(--ml-teal-700);border-radius:var(--ml-r-md);padding:18px 22px}
+.fxcard .ico{width:72px;height:72px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper)}
+.fxcard b{display:block;font-size:26px;font-weight:900;color:var(--ml-teal-700)}
+.fxcard span{font-size:19px;font-weight:500;color:var(--ml-ink);line-height:1.45}
+/* steps */
+.steps{position:relative;flex:1;display:grid;grid-template-columns:repeat(4,1fr);align-items:end;gap:20px;padding-bottom:24px}
+.step{position:relative;z-index:1;border-radius:var(--ml-r-md);padding:28px 26px;min-height:300px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--ml-shadow-md)}
+.step h4{margin:0;display:flex;align-items:center;gap:12px;font-size:30px;font-weight:900;color:var(--ml-teal-700)}
+.step h4 .ico{width:56px;height:56px;border-radius:50%;background:var(--ml-paper);color:var(--ml-teal-700)}
+.step b{font-size:26px;font-weight:900;line-height:1.4}
+.step p{margin:0;font-size:19px;line-height:1.55;font-weight:500;color:var(--ml-sub)}
+.step.s0{background:var(--ml-teal-50);min-height:300px}.step.s1{background:var(--ml-teal-100);min-height:400px}.step.s2{background:var(--ml-teal-200);min-height:500px}
+.step.s3{background:var(--ml-brand-teal);color:var(--ml-paper);min-height:600px}.step.s3 h4,.step.s3 p{color:var(--ml-paper)}.step.s3 h4 .ico{color:var(--ml-brand-teal)}
+.steps .rise{position:absolute;left:0;right:0;bottom:0;height:100%;pointer-events:none;z-index:0}
+/* pricing */
+.price{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:32px;flex:1;align-items:stretch}
+.pcard.entry,.pcard.expand{justify-content:center}
+.pcard{border-radius:var(--ml-r-lg);padding:36px 44px;display:flex;flex-direction:column;gap:8px}
+.pcard .lab{font-size:30px;font-weight:900}
+.pcard .big{font-size:150px;line-height:1;white-space:nowrap}
+.pcard .big .unit{font-family:var(--ml-font-sans);font-size:48px;font-weight:900;margin-left:8px}
+.pcard .ex{font-size:22px;font-weight:500;line-height:1.5;margin-top:8px}
+.pcard.entry{background:var(--ml-teal-700);color:var(--ml-paper)}
+.pcard.expand{background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.pcard.compare{background:var(--ml-bg);color:var(--ml-ink)}
+.pcard.compare .big{color:var(--ml-teal-700)}
+.pcard.compare .ex{color:var(--ml-sub)}
+/* closing */
+.closing{background:linear-gradient(160deg,var(--ml-teal-900),var(--ml-teal-700));color:var(--ml-paper);padding:64px 96px;gap:40px}
+.closing .top{display:flex;justify-content:space-between;align-items:center}
+.closing h2{margin:0;font-size:72px;font-weight:900;letter-spacing:.04em}
+.closing .top img{height:110px;width:auto}
+.closing .cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;flex:1}
+.closing .merits{border:var(--ml-bw-rule) solid var(--ml-teal-400);border-radius:var(--ml-r-md);padding:28px 36px;display:flex;flex-direction:column;gap:22px;font-size:32px;font-weight:700}
+.closing .merits h3{margin:0 0 6px;font-size:30px;font-weight:900;color:var(--ml-teal-100)}
+.closing .merits li{list-style:none;display:flex;align-items:center;gap:18px}
+.closing .merits ul{margin:0;padding:0;display:flex;flex-direction:column;gap:22px}
+.closing .merits .check{background:var(--ml-brand-yellow);color:var(--ml-ink);width:52px;height:52px;flex-basis:52px}
+.closing .next{background:var(--ml-brand-yellow);color:var(--ml-ink);border-radius:var(--ml-r-md);padding:32px 40px;display:flex;flex-direction:column;gap:18px}
+.closing .next h3{margin:0;font-size:36px;font-weight:900;display:flex;align-items:center;gap:16px}
+.closing .next h3 .ico{width:60px;height:60px;border-radius:50%;background:var(--ml-ink);color:var(--ml-brand-yellow)}
+.closing .next p{margin:0;font-size:32px;font-weight:900;line-height:1.5;border-top:var(--ml-bw-rule) solid var(--ml-ink);padding-top:18px}
+.closing .msg{font-size:72px;font-weight:900;letter-spacing:.06em;text-align:center}
+.closing .msg .q{color:var(--ml-brand-yellow)}
+@page{size:1920px 1080px;margin:0}
+@media print{body{background:var(--ml-paper)}.slide{page-break-after:always;margin:0}.slide+.slide{margin-top:0}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17" cy="9" r="2.8"/><path d="M15.5 14.5a5.5 5.5 0 0 1 6 5.5"/></symbol>
+  <symbol id="i-yen" viewBox="0 0 24 24"><path d="M7 4l5 7 5-7M12 11v9M8 14h8M8 17.5h8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M8.5 14a6 6 0 1 1 7 0c-.8.7-1.5 1.5-1.5 3h-4c0-1.5-.7-2.3-1.5-3z"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6 3h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 12l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 4 5a2 2 0 0 1 2-2z"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20h16M6 16v-5M11 16V7M16 16v-3M21 16V4"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M9 11h2M13 11h2M9 14h2M13 14h2"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 16l1.5-6h13L20 16M3 16h18v3H3zM7 19v2M17 19v2"/><circle cx="7.5" cy="16" r="1"/><circle cx="16.5" cy="16" r="1"/></symbol>
+  <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></symbol>
+  <symbol id="i-hands" viewBox="0 0 24 24"><path d="M4 13V7a2 2 0 0 1 4 0v6M20 13V7a2 2 0 0 0-4 0v6M4 13a8 8 0 0 0 16 0"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-2-9-2v14c4 0 7 .5 9 2 2-1.5 5-2 9-2V4c-4 0-7 .5-9 2zM12 6v14"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><circle cx="14" cy="4.5" r="2"/><path d="M6 21l4-6 3 2 2-5-3-1-4 3M13 12l3 3 3-1"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></symbol>
+  <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-8M12 13c0-4 3-6 7-6 0 4-3 6-7 6zM12 13c0-3-2-5-6-5 0 3 2 5 6 5z"/></symbol>
+</svg>
+
+<!-- cover -->
+<section class="slide cover" id="cover">
+  <svg class="waves" viewBox="0 0 1920 1080" preserveAspectRatio="none" fill="none" stroke="#A3DADB" stroke-width="2">
+    <path d="M-50 180C300 60 500 320 900 220S1500 40 1980 200"/><path d="M-50 240C300 120 500 380 900 280S1500 100 1980 260"/><path d="M-50 300C300 180 500 440 900 340S1500 160 1980 320"/>
+    <path d="M-50 900C300 780 500 1040 900 940S1500 760 1980 920"/><path d="M-50 960C300 840 500 1100 900 1000S1500 820 1980 980"/>
+  </svg>
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt="MARKELINE"></div>
+  <h1>株式会社〇〇 様 ご提案</h1>
+  <p>〜 現場のやり方を変えずに、業務を前に進める 〜</p>
+  <div class="company">株式会社MARKELINE</div>
+</section>
+
+<!-- goals -->
+<section class="slide" id="goals">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">本日のゴール</div>
+  <div class="body center" style="gap:40px">
+    <div class="goal"><div class="n">1</div><div class="t">「新しいシステムを覚える」のではなく<br><span class="em-y">「今のやり方のまま</span>、手間と探す時間を消す」</div></div>
+    <div class="goal"><div class="n">2</div><div class="t">賃貸部門で<span class="marker">“楽になった”を作り</span>、<br>他事業部（リフォーム・分譲 等）へ広げる</div></div>
+  </div>
+  <div class="pageno">02 / 08</div>
+</section>
+
+<!-- issues -->
+<section class="slide" id="issues">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">御社の現状＝私たちの理解<span class="sub">ヒアリングで伺った課題を4つに整理しました</span></div>
+  <div class="body">
+    <div class="grid2">
+      <div class="issue"><div class="ico"><svg><use href="#i-person"/></svg></div><div><h3><span class="n">1</span>担当者依存</h3><ul><li>特定の人しか分からない業務が多く、不在だと止まる</li><li>新人は質問先が限られる</li></ul></div></div>
+      <div class="issue"><div class="ico"><svg><use href="#i-folder"/></svg></div><div><h3><span class="n">2</span>情報の分断</h3><ul><li>メール・複数Excel・紙・個人の頭に情報が散在</li><li>探すのに膨大な時間</li></ul></div></div>
+      <div class="issue"><div class="ico"><svg><use href="#i-hands"/></svg></div><div><h3><span class="n">3</span>手作業の山</h3><ul><li>解約手続き（FAX→保証会社確認→Excel入力）</li><li>駐車場の手動消し込み、タスクの印刷→シュレッダー</li></ul></div></div>
+      <div class="issue"><div class="ico"><svg><use href="#i-book"/></svg></div><div><h3><span class="n">4</span>ナレッジの欠如</h3><ul><li>標準フロー・マニュアルがなく「見て覚えろ」OJT</li><li>新人が全体像を掴めない</li></ul></div></div>
+    </div>
+  </div>
+  <div class="pageno">03 / 08</div>
+</section>
+
+<!-- kpi rows -->
+<section class="slide" id="kpi">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">時間とお金がこれだけ溶けている</div>
+  <div class="body" style="gap:8px;padding-top:16px;padding-bottom:16px">
+    <div class="kpirow"><div class="ico"><svg><use href="#i-building"/></svg></div><div class="big num">2〜3<span class="unit">時間</span></div><div class="d">数百円の入金確認に【2〜3時間】<small>メールを掘り起こして照合（例）</small></div></div>
+    <div class="kpirow"><div class="ico"><svg><use href="#i-car"/></svg></div><div class="big num">15〜20<span class="unit">分</span></div><div class="d">駐車場の問い合わせ確認が【毎回15〜20分】<small>データの正確性 6〜8割（例）</small></div></div>
+    <div class="kpirow"><div class="ico"><svg><use href="#i-users"/></svg></div><div class="big num">8<span class="unit">名</span></div><div class="d">賃貸部門【8名】が業務逼迫<small>増員＝採用・教育コスト</small></div></div>
+    <div class="kpirow focus"><div class="ico"><svg><use href="#i-yen"/></svg></div><div class="big num">1,000<span class="unit">万円</span></div><div class="d">採用・教育に【1人あたり約1,000万円】<small>なのに離職多発＝「バケツの穴」（例）</small></div></div>
+  </div>
+  <div class="conclusion"><div class="check"><svg><use href="#i-check"/></svg></div>症状はバラバラでも、根っこは1つ。</div>
+</section>
+
+<!-- statement -->
+<section class="slide statement" id="statement">
+  <div class="tag"><div class="ico"><svg><use href="#i-sprout"/></svg></div>課題の根っこは1つ</div>
+  <p class="quote"><span class="q">「</span>実行する人と、<br>仕組みがない<span class="q">」</span></p>
+  <div class="note"><div class="ico"><svg><use href="#i-bulb"/></svg></div><div>やりたいこと・あるべき姿は見えている。<br>でも現場が忙しすぎて“前に進める手”が足りない。</div></div>
+  <img src="../assets/markeline_logo_color.png" alt="" style="position:absolute;right:48px;bottom:24px;height:110px">
+</section>
+
+<!-- compare -->
+<section class="slide" id="compare">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">私たちの考え方＝他社との決定的な違い</div>
+  <div class="body">
+    <div class="panels">
+      <div class="panel"><div class="head">従来のシステム/DX</div><div class="in"><b>「新しいツールに現場が合わせる」</b>
+        <div class="flow"><div class="node"><div class="ico"><svg><use href="#i-doc"/></svg></div>新しいシステム<br>入力ルール</div><div class="x">×</div><div class="node"><div class="ico"><svg><use href="#i-person"/></svg></div>現場の仕事が増える</div><div class="x">×</div><div class="node"><div class="ico"><svg><use href="#i-chart"/></svg></div>定着せず進まない</div></div>
+      </div></div>
+      <div class="panel win"><div class="head">MARKELINE</div><div class="in"><b class="em-y">「現場のオペレーションは変えない。</b><b>御社のやり方に、こちらが合わせる」</b><span>今お使いのメール・Excelはそのまま。裏側で自動的に情報を吸い上げてナレッジに集約。</span>
+        <div class="flow"><div class="node"><div class="ico"><svg><use href="#i-doc"/></svg></div>今お使いの<br>メール・Excel</div><div class="arrow">▶</div><div class="node"><div class="ico"><svg><use href="#i-target"/></svg></div>裏側で自動的に<br>情報を吸い上げ</div><div class="arrow">▶</div><div class="node"><div class="ico"><svg><use href="#i-book"/></svg></div>ナレッジに集約<br>活用しやすく蓄積</div></div>
+      </div></div>
+    </div>
+  </div>
+  <div class="conclusion teal"><div class="check"><svg><use href="#i-check"/></svg></div>＝「今やってることの延長線上で」「変化は重たい」に、<span class="em">まっすぐ応える形</span>。</div>
+</section>
+
+<!-- table -->
+<section class="slide" id="table">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">具体的に何をするか／御社の業務マップ</div>
+  <div class="body" style="padding-top:24px">
+    <table class="tbl">
+      <thead><tr><th style="width:34%">御社の手作業</th><th style="width:33%">MARKELINEの打ち手</th><th style="width:33%">効果</th></tr></thead>
+      <tbody>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-doc"/></svg></div><div>解約手続き<small>FAX/メール→保証会社確認→Excel入力</small></div></div></td><td class="action">受信を自動でタスク化・下書き作成</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>転記・確認の手間を削減</div></td></tr>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-car"/></svg></div><div>駐車場の契約管理<small>Excel手動消し込み</small></div></div></td><td class="action">消し込み・照合を自動化</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>問い合わせ即答（15〜20分→即時）</div></td></tr>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-yen"/></svg></div><div>入金確認<small>メールを掘り起こす</small></div></div></td><td class="action">入金照合の自動化</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>2〜3時間→数分</div></td></tr>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-folder"/></svg></div><div>タスク管理<small>印刷→シュレッダー</small></div></div></td><td class="action">タスクの自動集約・共有</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>紙運用をゼロに</div></td></tr>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-phone"/></svg></div><div>問い合わせの電話対応</div></div></td><td class="action">LINE窓口で一次対応</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>コア業務に集中</div></td></tr>
+        <tr><td class="task"><div><div class="ico"><svg><use href="#i-book"/></svg></div><div>「見て覚えろ」OJT</div></div></td><td class="action">録音ボタンを押すだけ→手順が自動ナレッジ化</td><td class="effect"><div><div class="check"><svg><use href="#i-check"/></svg></div>新人が自走、質問回数減</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pageno">07 / 08</div>
+</section>
+
+<!-- steps -->
+<section class="slide" id="steps">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">進め方：小さく始めて広げる<span class="sub">1人分の人件費でスモールスタート → 効果を実感しながら拡大</span></div>
+  <div class="body">
+    <div class="steps">
+      <svg class="rise" viewBox="0 0 1776 700" preserveAspectRatio="none" fill="none"><path d="M40 690 C 600 690, 1200 520, 1760 40" stroke="#F9BB00" stroke-width="16" stroke-linecap="round"/><path d="M1700 30 L1760 40 L1745 100" stroke="#F9BB00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="step s0"><h4><div class="ico"><svg><use href="#i-users"/></svg></div>STEP0</h4><b>現場に入る（1ヶ月）</b><p>MTG同席・業務を一緒に棚卸し。気づいていない“ペインの大きい業務”を発掘。</p></div>
+      <div class="step s1"><h4><div class="ico"><svg><use href="#i-phone"/></svg></div>STEP1</h4><b>賃貸部の「電話一次対応」をLINE窓口で自動化</b><p>まず“楽になった”を体感。続けて駐車場のExcel消し込みも自動化。</p></div>
+      <div class="step s2"><h4><div class="ico"><svg><use href="#i-chart"/></svg></div>STEP2</h4><b>効果を数字で可視化 → 賃貸部門で定着</b><p>録音→ナレッジ化を並走。</p></div>
+      <div class="step s3"><h4><div class="ico"><svg><use href="#i-building"/></svg></div>STEP3</h4><b>他事業部（リフォーム・分譲 等）へ横展開</b><p>賃貸で作った型を、そのまま他部門へ。</p></div>
+    </div>
+  </div>
+  <div class="conclusion teal"><div class="check"><svg><use href="#i-check"/></svg></div>＝ 月額の伴走型。<span class="em">「使ってください」ではなく「一緒に作りましょう」。</span></div>
+</section>
+
+<!-- pricing -->
+<section class="slide" id="pricing">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">料金：スモールスタート→積み上げ</div>
+  <div class="body">
+    <div class="price">
+      <div class="pcard entry"><div class="lab">入口：賃貸部門　月額</div><div class="big num">30<span class="unit">万円</span></div><div class="ex">現場に入り、伴走型で業務を圧縮（サブスク）。</div></div>
+      <div class="pcard expand"><div class="lab">横展開ラダー：最大　月額</div><div class="big num">120<span class="unit">万円</span></div><div class="ex">賃貸で成果 → 他事業部へ展開（最大4事業部 × 月30万）。</div></div>
+      <div class="pcard compare" style="grid-column:1 / -1;flex-direction:row;align-items:center;gap:40px"><div><div class="lab">増員1名＝採用・教育で</div><div class="big num" style="font-size:110px">約1,000<span class="unit">万円</span></div></div><div class="ex" style="font-size:26px;font-weight:700;color:var(--ml-ink)">人を増やさず回る仕組み（月30万）に投資する方が圧倒的に安い。<br><span style="font-weight:500;color:var(--ml-sub)">※ 金額は例。実際の見積はヒアリング後にご提示します。</span></div></div>
+    </div>
+  </div>
+  <div class="pageno">09 / 10</div>
+</section>
+
+<!-- closing -->
+<section class="slide closing" id="closing">
+  <div class="top"><h2>まとめ／次の一歩</h2><img src="../assets/markeline_logo_white.png" alt="MARKELINE"></div>
+  <div class="cols">
+    <div class="merits"><h3>【組むメリット】</h3><ul>
+      <li><div class="check"><svg><use href="#i-check"/></svg></div>① 現場を変えない</li>
+      <li><div class="check"><svg><use href="#i-check"/></svg></div>② 小さく始めて効果を見ながら拡大</li>
+      <li><div class="check"><svg><use href="#i-check"/></svg></div>③ 賃貸の成功を全社へ横展開できる</li>
+    </ul></div>
+    <div class="next"><h3><div class="ico"><svg><use href="#i-run"/></svg></div>【次の一歩】</h3><p>まず“ペインの大きい1業務”からSTEP0（現場に入る1ヶ月）</p></div>
+  </div>
+  <div class="msg"><span class="q">「</span>業務が前に進む安心感<span class="q">」</span>を、御社に。</div>
+</section>
+
+</body>
+</html>
