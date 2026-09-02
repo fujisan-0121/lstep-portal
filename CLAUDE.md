@@ -114,6 +114,10 @@ python3 -m http.server 8000
 - `tools/pins.csv` は絶対にコミットしない（.gitignore 済み）
 - コミットメッセージは変更内容が分かる日本語または英語。「Add files via upload」のような無内容なものは避ける
 
+## Obsidian自動記録を標準動作にする（obsidian-auto-write）
+
+`.claude/skills/obsidian-auto-write/` に、重要な更新・手順・繰り返しパターンをローカルのObsidian Vaultへ自動でMarkdownノートとして書き込むスキルがある（PR #1）。作業の区切りごとに「これはObsidianに残す価値があるか?」を自問し、該当すれば指示を待たずに書き込む。判断基準・Vaultパスの解決方法・ノートフォーマットは同スキルの `SKILL.md` と `reference.md` を参照。Vaultパスの設定（`OBSIDIAN_VAULT_PATH` か `~/.config/claude-obsidian/vault-path`）は natural-japanese と共通。
+
 ## 日本語を書くときの標準動作（natural-japanese）
 
 日本語の文章を書く・直す・返答するタスクでは、着手前に `.claude/skills/natural-japanese/` のスキルを使う。藤原人格と文体ナレッジを全文読んでから書き、AIの癖を落として呼吸のある日本語に整える。出力にアスタリスクを入れない。
