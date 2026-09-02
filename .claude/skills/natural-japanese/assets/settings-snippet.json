@@ -1,0 +1,15 @@
+{
+  "_comment": "~/.claude/settings.json の hooks に追記する例。scripts/install.sh を使えば自動で入る。セッション開始時に藤原人格と文体ナレッジ（「## 核」があればそこだけ）をコンテキストへ流す。",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/skills/natural-japanese/scripts/session-start.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
