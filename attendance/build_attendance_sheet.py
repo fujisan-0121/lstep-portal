@@ -142,7 +142,7 @@ rows = [
     ("■ 注意", True),
     ("・シフト表は同時に1か月しか表示しない。過去月を見たいときは年・月を戻すだけでよい（データは休暇申請に残っている）。", False),
     ("・休暇申請の日付は必ず日付形式（2026/9/10 のように入力）。文字として入ると集計に乗らない。", False),
-    ("・「休暇申請」の自動列（灰色）は200行分だけ式が入っている。それを超える場合は上の行をコピーする。", False),
+    ("・「休暇申請」の自動列（灰色）は120行分だけ式が入っている。それを超える場合は上の行をコピーする。", False),
 ]
 r = 4
 for text, bold in rows:
@@ -294,7 +294,7 @@ add_name("MIN_ALL", "設定!$C$14")
 add_name("MIN_FT", "設定!$C$15")
 add_name("SYM_TBL", f"設定!$B${SYM_FIRST}:$D${SYM_LAST}")
 title(lg, "休暇申請（ここだけ入力する）", "1休暇につき1行。連休は日ごとに1行。状態を「承認」にするとシフト表・有給管理に反映される。")
-LOG_FIRST, LOG_LAST = 5, 204
+LOG_FIRST, LOG_LAST = 5, 124
 add_name("LOG_NAME", f"休暇申請!$C${LOG_FIRST}:$C${LOG_LAST}")
 add_name("LOG_DATE", f"休暇申請!$D${LOG_FIRST}:$D${LOG_LAST}")
 add_name("LOG_SYM", f"休暇申請!$E${LOG_FIRST}:$E${LOG_LAST}")
@@ -322,27 +322,35 @@ staff_names = "STAFF_NAMES"
 staff_days = "STAFF_DAYS"
 for row in range(LOG_FIRST, LOG_LAST + 1):
     s = samples[row - LOG_FIRST] if row - LOG_FIRST < len(samples) else None
-    cell(lg, f"B{row}", s[0] if s else None, INPUT_FILL, fmt="yyyy/m/d", align="center")
-    cell(lg, f"C{row}", s[1] if s else None, INPUT_FILL)
-    cell(lg, f"D{row}", s[2] if s else None, INPUT_FILL, fmt="yyyy/m/d", align="center")
-    cell(lg, f"E{row}", s[3] if s else None, INPUT_FILL, align="center")
-    cell(lg, f"F{row}", s[4] if s else None, INPUT_FILL)
-    cell(lg, f"G{row}", s[5] if s else None, INPUT_FILL, align="center")
-    cell(lg, f"H{row}", s[6] if s else None, INPUT_FILL)
+    if s:
+        cell(lg, f"B{row}", s[0], INPUT_FILL, fmt="yyyy/m/d", align="center")
+        cell(lg, f"C{row}", s[1], INPUT_FILL)
+        cell(lg, f"D{row}", s[2], INPUT_FILL, fmt="yyyy/m/d", align="center")
+        cell(lg, f"E{row}", s[3], INPUT_FILL, align="center")
+        cell(lg, f"F{row}", s[4], INPUT_FILL)
+        cell(lg, f"G{row}", s[5], INPUT_FILL, align="center")
+        cell(lg, f"H{row}", s[6], INPUT_FILL)
     # 同日の他の休み（承認 + 申請中、自分を除く）
     cell(lg, f"I{row}",
          f'=IF(D{row}="","",COUNTIFS(LOG_DATE,D{row},LOG_STATE,"承認")'
          f'+COUNTIFS(LOG_DATE,D{row},LOG_STATE,"申請中")-IF(G{row}="却下",0,1))',
-         AUTO_FILL, align="center")
+         AUTO_FILL, align="center", border=False)
     # 出勤見込み = その曜日に勤務予定の人数 − 休む人数（承認+申請中、自分含む）
     cell(lg, f"J{row}",
          f'=IF(D{row}="","",IFERROR(SUMPRODUCT((INDEX(STAFF_DAYS,0,WEEKDAY(D{row},2))="○")*1)-I{row}-IF(G{row}="却下",0,1),"日付を確認"))',
-         AUTO_FILL, align="center")
+         AUTO_FILL, align="center", border=False)
     cell(lg, f"K{row}",
          f'=IF(D{row}="","",IFERROR(IF(OR(INDEX(BIZ_DAYS,WEEKDAY(D{row},2))="×",COUNTIF(HOLIDAYS,D{row})>0),"休業日",IF(J{row}<MIN_ALL,"要確認","OK")),"日付を確認"))',
-         AUTO_FILL, align="center", bold=True)
-    cell(lg, f"L{row}", f'=IF(AND(G{row}="承認",C{row}<>"",D{row}<>""),C{row}&"|"&TEXT(D{row},"yyyymmdd"),"")', AUTO_FILL, color=MUTED)
-    cell(lg, f"M{row}", f'=IF(AND(G{row}="申請中",C{row}<>"",D{row}<>""),C{row}&"|"&TEXT(D{row},"yyyymmdd"),"")', AUTO_FILL, color=MUTED)
+         AUTO_FILL, align="center", bold=True, border=False)
+    cell(lg, f"L{row}", f'=IF(AND(G{row}="承認",C{row}<>"",D{row}<>""),C{row}&"|"&TEXT(D{row},"yyyymmdd"),"")', AUTO_FILL, color=MUTED, border=False)
+    cell(lg, f"M{row}", f'=IF(AND(G{row}="申請中",C{row}<>"",D{row}<>""),C{row}&"|"&TEXT(D{row},"yyyymmdd"),"")', AUTO_FILL, color=MUTED, border=False)
+for col in "BDFH":  # 日付列の表示形式（空セルにも効かせる）
+    pass
+lg.conditional_formatting.add(f"B{LOG_FIRST}:H{LOG_LAST}", FormulaRule(formula=["TRUE"], fill=INPUT_FILL))
+for col, fmt in (("B", "yyyy/m/d"), ("D", "yyyy/m/d")):
+    for row in range(LOG_FIRST + len(samples), LOG_LAST + 1):
+        lg[f"{col}{row}"].number_format = fmt
+lg.sheet_view.showGridLines = True
 lg["I5"].comment = Comment("同じ日に休む予定（承認済み＋申請中）の人数。自分は除く。半休も1人として数える（安全側）。", "template")
 lg["J5"].comment = Comment("その曜日に勤務予定の人数 − 休む人数（自分を含む、承認＋申請中）。半休も1人分の休みとして数えるので、実際より厳しめに出る。", "template")
 lg["K5"].comment = Comment("出勤見込みが設定の最低出勤人数を割ると「要確認」。承認前に日程調整を。", "template")
