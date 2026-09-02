@@ -581,3 +581,83 @@ wb._sheets = [wb["シフト表"], wb["休暇申請"], wb["有給管理"], wb["�
 wb.active = 0
 wb.save(OUT)
 print("saved", OUT)
+
+
+# =============================================================================
+# 後処理: 同じパターンの数式を「共有数式」にまとめてファイルを小さくする
+# （Excel / Google スプレッドシート / LibreOffice すべて対応の標準形式）
+# =============================================================================
+def compact_shared_formulas(path):
+    import re
+    import zipfile
+    import xml.etree.ElementTree as ET
+    from openpyxl.formula.translate import Translator
+    from openpyxl.utils.cell import coordinate_from_string, column_index_from_string
+
+    NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    ET.register_namespace("", NS)
+    ET.register_namespace("r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
+    ET.register_namespace("mc", "http://schemas.openxmlformats.org/markup-compatibility/2006")
+    ET.register_namespace("x14ac", "http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac")
+    q = lambda t: f"{{{NS}}}{t}"
+
+    def key(ref):
+        col, row = coordinate_from_string(ref)
+        return (row, column_index_from_string(col))
+
+    src = zipfile.ZipFile(path)
+    items = {n: src.read(n) for n in src.namelist()}
+    src.close()
+    for name in list(items):
+        if not re.match(r"xl/worksheets/sheet\d+\.xml$", name):
+            continue
+        root = ET.fromstring(items[name])
+        cells = {}
+        for c in root.iter(q("c")):
+            fe = c.find(q("f"))
+            if fe is not None and fe.text and fe.get("t") is None:
+                cells[key(c.get("r"))] = (c, fe)
+        done = set()
+        si = 0
+        for k in sorted(cells):
+            if k in done:
+                continue
+            c, fe = cells[k]
+            anchor = "=" + fe.text
+            anchor_ref = c.get("r")
+            tr = Translator(anchor, origin=anchor_ref)
+
+            def run(step):
+                out = [k]
+                nk = (k[0] + step[0], k[1] + step[1])
+                while nk in cells and nk not in done:
+                    cc, ff = cells[nk]
+                    if tr.translate_formula(cc.get("r")) != "=" + ff.text:
+                        break
+                    out.append(nk)
+                    nk = (nk[0] + step[0], nk[1] + step[1])
+                return out
+
+            best = max(run((1, 0)), run((0, 1)), key=len)
+            if len(best) < 3:
+                done.add(k)
+                continue
+            last = cells[best[-1]][0].get("r")
+            fe.set("t", "shared")
+            fe.set("ref", f"{anchor_ref}:{last}")
+            fe.set("si", str(si))
+            for kk in best[1:]:
+                cc, ff = cells[kk]
+                ff.text = None
+                ff.set("t", "shared")
+                ff.set("si", str(si))
+            done.update(best)
+            si += 1
+        items[name] = ET.tostring(root, xml_declaration=True, encoding="UTF-8")
+    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as dst:
+        for n, data in items.items():
+            dst.writestr(n, data)
+
+
+compact_shared_formulas(OUT)
+print("compacted", OUT)
