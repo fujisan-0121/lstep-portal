@@ -10,8 +10,7 @@ python3 build_attendance_sheet.py [出力先.xlsx]
   設定        … メンバー、勤務曜日、営業曜日、記号、最低出勤人数、祝日
   使い方      … 運用ルールと入力手順
 
-ファイルを小さく保つため、行・列単位の数式は配列数式で書いている
-（Excel / Google スプレッドシート / LibreOffice すべてで動く標準形式）。
+数式はすべて通常の数式（行の挿入・コピーに強い）。後処理で共有数式にまとめて軽量化する。
 """
 import sys
 from datetime import date
@@ -19,7 +18,6 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
-from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.formatting.rule import CellIsRule, FormulaRule
 from openpyxl.workbook.defined_name import DefinedName
 
@@ -234,7 +232,7 @@ add_name("SYM_TBL", f"設定!$B${SYM_FIRST}:$D${SYM_LAST}")
 # =============================================================================
 lg = wb.create_sheet("休暇申請")
 title(lg, "休暇申請（ここだけ入力する）",
-      "1休暇につき1行。連休は日ごとに1行。状態を「承認」にするとシフト表・有給管理に反映される。行の挿入はせず、下に追記する。")
+      "1休暇につき1行。連休は日ごとに1行。状態を「承認」にするとシフト表・有給管理に反映される。")
 L0, L1 = 5, 124
 cols = [("申請日", 11), ("氏名", 12), ("休暇日", 11), ("種別", 8), ("理由・備考", 28),
         ("状態", 9), ("承認者", 10), ("同日の他の休み", 10), ("出勤見込み", 9), ("判定", 12),
@@ -259,19 +257,21 @@ for i, s in enumerate(samples):
     cell(lg, f"F{row}", s[4], None, border=False)
     cell(lg, f"G{row}", s[5], None, align="center", border=False)
     cell(lg, f"H{row}", s[6] or None, None, border=False)
-D, G, C, E = f"D{L0}:D{L1}", f"G{L0}:G{L1}", f"C{L0}:C{L1}", f"E{L0}:E{L1}"
-arrays = {
-    "I": f'=IF({D}="","",COUNTIFS(LOG_DATE,{D},LOG_STATE,"承認")+COUNTIFS(LOG_DATE,{D},LOG_STATE,"申請中")-IF({G}="却下",0,1))',
-    "J": f'=IF({D}="","",IFERROR(HLOOKUP(WEEKDAY({D},2),BIZ_TABLE,3,0)-I{L0}:I{L1}-IF({G}="却下",0,1),"日付を確認"))',
-    "K": f'=IF({D}="","",IFERROR(IF((HLOOKUP(WEEKDAY({D},2),BIZ_TABLE,2,0)="×")+(COUNTIF(HOLIDAYS,{D})>0)>0,"休業日",IF(J{L0}:J{L1}<MIN_ALL,"要確認","OK")),"日付を確認"))',
-    "L": f'=IF(({G}="承認")*({C}<>"")*({D}<>""),{C}&"|"&TEXT({D},"yyyymmdd"),"")',
-    "M": f'=IF(({G}="申請中")*({C}<>"")*({D}<>""),{C}&"|"&TEXT({D},"yyyymmdd"),"")',
-    "N": f'=IF({E}="","",{E})',
-}
-for col, formula in arrays.items():
-    lg[f"{col}{L0}"] = ArrayFormula(f"{col}{L0}:{col}{L1}", formula)
-    lg[f"{col}{L0}"].font = f(color=MUTED if col in "LMN" else "000000", bold=(col == "K"))
-    lg[f"{col}{L0}"].alignment = Alignment(horizontal="center")
+for row in range(L0, L1 + 1):
+    D, G, C, E = f"D{row}", f"G{row}", f"C{row}", f"E{row}"
+    formulas = {
+        "I": f'=IF({D}="","",COUNTIFS(LOG_DATE,{D},LOG_STATE,"承認")+COUNTIFS(LOG_DATE,{D},LOG_STATE,"申請中")-IF({G}="却下",0,1))',
+        "J": f'=IF({D}="","",IFERROR(HLOOKUP(WEEKDAY({D},2),BIZ_TABLE,3,0)-I{row}-IF({G}="却下",0,1),"日付を確認"))',
+        "K": f'=IF({D}="","",IFERROR(IF(OR(HLOOKUP(WEEKDAY({D},2),BIZ_TABLE,2,0)="×",COUNTIF(HOLIDAYS,{D})>0),"休業日",IF(J{row}<MIN_ALL,"要確認","OK")),"日付を確認"))',
+        "L": f'=IF(AND({G}="承認",{C}<>"",{D}<>""),{C}&"|"&TEXT({D},"yyyymmdd"),"")',
+        "M": f'=IF(AND({G}="申請中",{C}<>"",{D}<>""),{C}&"|"&TEXT({D},"yyyymmdd"),"")',
+        "N": f'=IF({E}="","",{E})',
+    }
+    for col, formula in formulas.items():
+        c = lg[f"{col}{row}"]
+        c.value = formula
+        c.font = f(color=MUTED if col in "LMN" else "000000", bold=(col == "K"))
+        c.alignment = Alignment(horizontal="center")
 add_name("LOG_NAME", f"休暇申請!$C${L0}:$C${L1}")
 add_name("LOG_DATE", f"休暇申請!$D${L0}:$D${L1}")
 add_name("LOG_SYM", f"休暇申請!$E${L0}:$E${L1}")
@@ -338,34 +338,33 @@ for col, text in zip((36, 37, 38, 39), ("所定日数", "出勤日数", "休暇�
     head(sh, R_DATE, col, text, 8)
     sh.merge_cells(start_row=R_DATE, start_column=col, end_row=R_CLOSED, end_column=col)
 
-# 見出し行（配列数式）
-sh["D5"] = ArrayFormula("D5:AH5", '=IF(DATE($C$3,$E$3,1)+COLUMN(D$5:AH$5)-COLUMN($D$5)>EOMONTH(DATE($C$3,$E$3,1),0),"",DATE($C$3,$E$3,1)+COLUMN(D$5:AH$5)-COLUMN($D$5))')
-sh["D6"] = ArrayFormula("D6:AH6", f'=IF({DAYS}="","",MID("月火水木金土日",WEEKDAY({DAYS},2),1))')
-sh["D7"] = ArrayFormula("D7:AH7", f'=IF({DAYS}="","",IF((HLOOKUP(WEEKDAY({DAYS},2),BIZ_TABLE,2,0)="×")+(COUNTIF(HOLIDAYS,{DAYS})>0)>0,"休業",""))')
-for ref, fill, color in (("D5", SUB_FILL, "000000"), ("D6", SUB_FILL, "000000"), ("D7", SUB_FILL, MUTED)):
-    sh[ref].fill = fill
-    sh[ref].font = f(bold=(ref == "D5"), color=color)
-    sh[ref].alignment = Alignment(horizontal="center")
-sh["D5"].number_format = "d"
+# 見出し行（列ごとの通常数式。後処理で共有数式にまとまる）
+for c in range(4, 35):
+    L = get_column_letter(c)
+    d = f"{L}$5"
+    cell(sh, f"{L}5", f'=IF(DATE($C$3,$E$3,1)+COLUMN({L}$5)-COLUMN($D$5)>EOMONTH(DATE($C$3,$E$3,1),0),"",DATE($C$3,$E$3,1)+COLUMN({L}$5)-COLUMN($D$5))',
+         SUB_FILL, bold=True, align="center", fmt="d")
+    cell(sh, f"{L}6", f'=IF({d}="","",MID("月火水木金土日",WEEKDAY({d},2),1))', SUB_FILL, align="center")
+    cell(sh, f"{L}7", f'=IF({d}="","",IF(OR(HLOOKUP(WEEKDAY({d},2),BIZ_TABLE,2,0)="×",COUNTIF(HOLIDAYS,{d})>0),"休業",""))',
+         SUB_FILL, align="center", color=MUTED)
 
 for i in range(6):
     r, h = S0 + i, H0 + i
     cell(sh, f"B{r}", f'=IF(設定!B{5 + i}="","",設定!B{5 + i})', None, bold=True, color="008000")
     cell(sh, f"C{r}", f'=IF(設定!C{5 + i}="","",設定!C{5 + i})', None, color="008000", align="center")
     ROW = f"D{r}:AH{r}"
-    key = f'$B{r}&"|"&TEXT({DAYS},"yyyymmdd")'
-    sh[f"D{r}"] = ArrayFormula(ROW,
-        f'=IF($B{r}="","",IF({DAYS}="","",IF({CLOSED}="休業","",'
-        f'IF(HLOOKUP(WEEKDAY({DAYS},2),STAFF_WD,MATCH($B{r},STAFF_NAMES,0)+2,0)="×","－",'
-        f'IFERROR(VLOOKUP({key},KEYTAB_A,3,0),IFERROR("("&VLOOKUP({key},KEYTAB_P,2,0)&")",""))))))')
-    sh[f"D{r}"].alignment = Alignment(horizontal="center")
-    sh[f"D{r}"].font = f()
-    sh[f"D{h}"] = ArrayFormula(f"D{h}:AH{h}",
-        f'=IF($B{r}="","",IF({DAYS}="","",IF({CLOSED}="休業","",IF({ROW}="－","",'
-        f'IF({ROW}="",1,IFERROR(VLOOKUP({ROW},SYM_TBL,3,0),1))))))')
-    sh[f"D{h}"].font = f(color=MUTED)
-    sh[f"D{h}"].alignment = Alignment(horizontal="center")
-    sh[f"D{h}"].number_format = "0.#"
+    for c in range(4, 35):
+        L = get_column_letter(c)
+        d, cl, g = f"{L}$5", f"{L}$7", f"{L}{r}"
+        key = f'$B{r}&"|"&TEXT({d},"yyyymmdd")'
+        cell(sh, g,
+             f'=IF(OR($B{r}="",{d}=""),"",IF({cl}="休業","",'
+             f'IF(HLOOKUP(WEEKDAY({d},2),STAFF_WD,MATCH($B{r},STAFF_NAMES,0)+2,0)="×","－",'
+             f'IFERROR(VLOOKUP({key},KEYTAB_A,3,0),IFERROR("("&VLOOKUP({key},KEYTAB_P,2,0)&")","")))))',
+             None, align="center")
+        cell(sh, f"{L}{h}",
+             f'=IF(OR($B{r}="",{d}="",{cl}="休業",{g}="－"),"",IF({g}="",1,IFERROR(VLOOKUP({g},SYM_TBL,3,0),1)))',
+             AUTO_FILL, align="center", color=MUTED, fmt="0.#")
     cell(sh, f"B{h}", f"=B{r}", AUTO_FILL, color=MUTED)
     cell(sh, f"C{h}", "係数", AUTO_FILL, color=MUTED, align="center")
     HROW = f"D{h}:AH{h}"
@@ -398,16 +397,6 @@ for r, text in labels.items():
     sh.merge_cells(f"B{r}:C{r}")
 cell(sh, "B22", "自動計算エリア（出勤係数。編集不要。申請中は1日休み扱いで安全側に計算）", None, color=MUTED, border=False)
 
-# 配列数式の出力先（E..AH）にも見出し・グリッド・係数行と同じ書式を入れる
-for c in range(5, 35):
-    L = get_column_letter(c)
-    for r in list(range(5, 14)) + list(range(H0, H1 + 1)):
-        src = sh[f"D{r}"]
-        dst = sh[f"{L}{r}"]
-        dst.font = src.font.copy()
-        dst.fill = src.fill.copy()
-        dst.alignment = src.alignment.copy()
-        dst.number_format = src.number_format
 GRID = f"D{S0}:AH{S1}"
 sh.conditional_formatting.add(f"D5:AH{R_JUDGE_PEND}", FormulaRule(formula=['D$7="休業"'], fill=CLOSED_FILL, stopIfTrue=True))
 sh.conditional_formatting.add("D6:AH6", FormulaRule(formula=['D6="日"'], font=Font(name=FONT, color="C0392B", bold=True)))
@@ -471,7 +460,7 @@ ws.column_dimensions["B"].width = 4
 ws.column_dimensions["C"].width = 110
 rows = [
     ("■ 基本の考え方", True),
-    ("・入力するのは「休暇申請」シートだけ。1休暇につき1行（連休は日ごとに1行）。行の挿入はせず下に追記する。", False),
+    ("・入力するのは「休暇申請」シートだけ。1休暇につき1行（連休は日ごとに1行）。", False),
     ("・「シフト表」は年・月を切り替えるだけで自動で組み上がる。「有給管理」は承認済みの申請から自動集計。", False),
     ("・黄色のセル = 入力する場所。灰色のセル = 自動計算（触らない）。", False),
     ("■ 最初にやること（5分）", True),
@@ -493,7 +482,7 @@ rows = [
     ("・正社員は年5日の有給取得義務あり。「年5日義務」列が「あと○日」のままなら管理者側から取得日を提案する。", False),
     ("■ 注意", True),
     ("・休暇申請の日付は必ず日付形式（2026/9/10）で入力。文字として入ると集計に乗らない。", False),
-    ("・自動列は120行分。超える場合は「休暇申請」の各自動列の数式の範囲（5:124）を広げる。", False),
+    ("・自動列は120行分。超える場合は「休暇申請」の最終行をコピーして下に貼り付ける。", False),
     ("・半休は「同日の他の休み」「申請中の判定」では1人分の休みとして数える（安全側）。承認後の出勤人数は0.5で数える。", False),
 ]
 r = 4
