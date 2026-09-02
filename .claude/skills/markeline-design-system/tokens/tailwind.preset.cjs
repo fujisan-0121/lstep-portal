@@ -45,11 +45,10 @@ module.exports = {
       },
       "fontFamily": {
         "sans": [
-          "Zen Kaku Gothic New",
+          "Noto Sans JP",
           "Hiragino Sans",
           "Hiragino Kaku Gothic ProN",
           "Yu Gothic",
-          "Noto Sans JP",
           "sans-serif"
         ],
         "mono": [
@@ -60,8 +59,8 @@ module.exports = {
           "monospace"
         ],
         "display": [
-          "Poppins",
-          "Zen Kaku Gothic New",
+          "Noto Sans JP",
+          "Hiragino Sans",
           "sans-serif"
         ]
       },

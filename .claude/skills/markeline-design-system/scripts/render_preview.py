@@ -7,7 +7,8 @@
 
 --each SELECTOR   screenshot every element matching SELECTOR (slides, banner cells) as N files
 --full            full-page screenshot (LPs)
---scale N         device scale factor (default 1; use 2 for retina previews)
+--scale N         device scale factor (default 1; use 2 for final 3840x2160 slide exports)
+--pdf             also write a vector PDF next to the HTML (one page per .slide via @page/@media print)
 Presets come from tokens/tokens.json > canvas_presets_px. Prints the output paths.
 """
 from __future__ import annotations
@@ -29,6 +30,7 @@ def main() -> int:
     ap.add_argument("--full", action="store_true")
     ap.add_argument("--scale", type=float, default=1.0)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--pdf", action="store_true")
     a = ap.parse_args()
     try:
         from playwright.sync_api import sync_playwright
@@ -60,6 +62,11 @@ def main() -> int:
         else:
             f = out.with_suffix(".png")
             pg.screenshot(path=str(f), full_page=a.full)
+            outputs.append(f)
+        if a.pdf:
+            f = out.with_suffix(".pdf")
+            pg.emulate_media(media="print")
+            pg.pdf(path=str(f), width=f"{w}px", height=f"{h}px", print_background=True, prefer_css_page_size=True)
             outputs.append(f)
         b.close()
     for f in outputs:

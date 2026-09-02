@@ -12,7 +12,7 @@
 | 1 | `logo_color.png` 2250×1600 透明背景 | 同フォルダ、および `MARKELINE_Codex_Context/assets/` | 不透明ピクセルは 2 色のみ: `#F9BB00` 256,974px / `#00979C` 176,356px。アートワーク bbox (300,271)-(1950,1330) = 1650×1059 |
 | 1 | `logo_white.png` | 同フォルダ | 不透明ピクセルは `#FFFFFF` のみ。bbox 同一 |
 | 2 | `mt1.png`〜`mt6.png`（マスコット「マーケラトプス」, 2021-12） | `画像・ロゴ・マスコット/マーケラトプス/` | 最頻 6 色を `color.mascot` として実測登録 |
-| 3 | `MARKELINE_Codex_Context/design_skill/SKILL.md`（design_skill v0, 2026-06） | Google Drive | フォント選定（Zen Kaku Gothic New / IBM Plex Mono / Poppins）、4pt スペーシング、コンポーネント規則、danger 色 `#D8472B` |
+| 3 | `MARKELINE_Codex_Context/design_skill/SKILL.md`（design_skill v0, 2026-06） | Google Drive | フォント選定（Noto Sans JP / IBM Plex Mono / Noto Sans JP）、4pt スペーシング、コンポーネント規則、danger 色 `#D8472B` |
 | 3 | `業務委託を戦力にする組織のつくりかた_MARKELINE_編集可能版.pptx`（48 枚, 2026-08） | Google Drive | design_skill v0 のトークンが実運用されている証拠（`149A9B`×249, `15282B`×191, `0A3B40`×136, `F5B501`×58 …） |
 | 3 | `MARKELINE_Codex_Context/05_brand_voice.md`, `08_web_lp_assets.md`, `99_do_not_do.md` | Google Drive | トーン、ロゴ説明（MARKE=イエロー / LINE=ティール）、禁止事項 |
 | 4 | `seminar_closing_slides_markeline_style/index.html`（2026-04〜） | Google Drive | 別系統の近似値 `#459c9c` / `#f7bd47`。**採用しない**（記録のみ） |
@@ -78,7 +78,7 @@ CMYK は印刷入稿時にそのまま使う。RGB→CMYK を再計算しない�
 
 ## 5. フォントの出所
 
-`Zen Kaku Gothic New`（和文）、`IBM Plex Mono`（数値）、`Poppins`（任意欧文）は design_skill v0 の社内決定を継承。
+`Noto Sans JP`（和文）、`IBM Plex Mono`（数値）、`Noto Sans JP`（display = sans と同一）（任意欧文）は design_skill v0 の社内決定を継承。
 根拠は「見出し 900 まで持つ和文ゴシックで Google Fonts から無償配布され、数値を等幅にする方針と噛み合う」こと。
 コーポレートサイトの実フォントは未検証。`extract_site_tokens.py` の結果で異なる場合は、**サイト側かトークン側かのどちらを正とするかを人が決めてから**更新する。
 

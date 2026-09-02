@@ -4,9 +4,11 @@
 
 | 用途 | 書体 | ウェイト | 読み込み |
 |---|---|---|---|
-| 和文・本文・見出し | Zen Kaku Gothic New | 400 / 500 / 700 / 900 | Google Fonts（`tokens.json > google_fonts_url`）またはセルフホスト |
+| 和文・本文・見出し | Noto Sans JP | 400 / 500 / 700 / 900 | Google Fonts（`tokens.json > google_fonts_url`）またはセルフホスト |
 | 数値・KPI・日付・ページ番号・ラベルキャップス | IBM Plex Mono | 500 / 600 / 700 | 同上 |
-| 欧文だけの大見出し（任意） | Poppins | 600 / 700 | 同上。和文が混ざる見出しでは使わない |
+| 巨大数字・KPI（インフォグラフィック型） | Noto Sans JP | 900 | `--ml-font-display`。sans と同じ書体で、基準資料「野村工務店様 ご提案」の数字表現に合わせる |
+
+書体は和文 1 種 + 等幅 1 種だけ。基準資料を拡大して確認した書体が源ノ角ゴシック系（Noto Sans JP）の Bold/Black だったため、2026-09-02 に Zen Kaku Gothic New から切り替えた。「資料と同じ見え方」が最優先なので、他の Google 日本語フォント（Zen Kaku、M PLUS、BIZ UD 等）に勝手に戻さない。
 
 Office 系（pptx / docx / xlsx）は環境にフォントが無いと置換される。`tokens.py` の `FONT_SANS_OFFICE_FALLBACK`（Yu Gothic）と `Consolas` を代替として `latin` と `eastAsia` の両方に明示する。
 Calibri / Arial / MS Pゴシック / メイリオを残さない（`lint_tokens.py` が検出する）。

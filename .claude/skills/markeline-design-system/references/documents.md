@@ -4,7 +4,7 @@
 
 ## 共通
 
-- 本文フォント `Zen Kaku Gothic New`（無い環境は `Yu Gothic`）。数値・金額・日付は `IBM Plex Mono`（無ければ `Consolas`）。Calibri / Arial / MS 明朝を残さない。
+- 本文フォント `Noto Sans JP`（無い環境は `Yu Gothic`）。数値・金額・日付は `IBM Plex Mono`（無ければ `Consolas`）。Calibri / Arial / MS 明朝を残さない。
 - 本文 `ink` 10.5〜11pt、行間 1.6。見出し `teal-800` 14〜16pt 900。補足 `sub` 9pt。
 - 罫線 `line` 0.5pt。見出し下に `brand-teal` 1.5pt。
 - ヘッダー: 左 ロゴ（幅 30mm）、右 文書名 `sub` 9pt。フッター: `株式会社MARKELINE` + ページ番号 mono。

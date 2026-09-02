@@ -223,9 +223,9 @@ RGB = {
         60
     ]
 }
-FONT_SANS = 'Zen Kaku Gothic New'
+FONT_SANS = 'Noto Sans JP'
 FONT_MONO = 'IBM Plex Mono'
-FONT_DISPLAY = 'Poppins'
+FONT_DISPLAY = 'Noto Sans JP'
 FONT_SANS_OFFICE_FALLBACK = 'Yu Gothic'
 SCALE_PX = {"xs": 12, "sm": 14, "base": 16, "md": 18, "lg": 20, "xl": 24, "2xl": 30, "3xl": 36, "4xl": 48, "5xl": 64}
 SPACE_PX = {"1": 4, "2": 8, "3": 12, "4": 16, "5": 20, "6": 24, "8": 32, "10": 40, "12": 48, "16": 64, "20": 80, "24": 96, "32": 128}

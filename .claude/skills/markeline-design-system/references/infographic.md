@@ -43,19 +43,19 @@ conclusion 120px: brand-yellow 面（ink 900 36px）か teal-700 面（paper 900
 | `cover` | 表紙 | `brand-teal` 全面、`teal-200` の波線 SVG（stroke 2px, opacity .35）、白ロゴボックス左上、タイトル 72/900 paper、`brand-yellow` 4px 下線、サブ 28/500 paper、右下に社名 |
 | `goals` | 本日のゴール | 番号付き横長カード×2〜3。カード `bg`、左に `brand-yellow` 12px バー、番号は `teal-700` 丸 72px に paper 40/900、本文 36/900 ink、強調は `.marker`（`yellow-100` 下地）か `yellow-700` 文字 |
 | `issues` | 現状整理 | 2×2 カード。各カードにアイコン（teal 120px）+ 番号丸（`brand-yellow` / ink）+ 見出し 32/900 + 箇条書き 20/500 sub |
-| `kpi-rows` | 数字で見せる | 4 行。左アイコン、中央に巨大数字（Poppins 700 / 128px / `teal-700`、単位 sans 40/900）、右に説明 24/700。最重要 1 行だけ数字を `brand-yellow`（display 例外、下記）。下に `brand-yellow` 結論帯 |
+| `kpi-rows` | 数字で見せる | 4 行。左アイコン、中央に巨大数字（Noto Sans JP 900 / 128px / `teal-700`、単位 sans 40/900）、右に説明 24/700。最重要 1 行だけ数字を `brand-yellow`（display 例外、下記）。下に `brand-yellow` 結論帯 |
 | `statement` | 一言主張 | 白地中央に 120/900 ink、`brand-yellow` の鉤括弧（`「` `」` を 160px で色付け）、下に電球アイコン + 補足 32/700 |
 | `compare` | 従来 vs MARKELINE | 左パネル `bg` + `sub` ヘッダ、右パネル `paper` + `teal-700` ヘッダ + `teal-700` 2px 枠。右が勝つ構図。下に結論帯 |
 | `table` | 業務マップ | 3 列。ヘッダ `teal-700` / paper 700 24px、行 48px 以上、偶数行 `bg`、矢印列 `brand-yellow` ▶、効果列はチェック丸 + `yellow-700` 900 |
 | `before-after` | 効果 | 左 Before（`sub` ヘッダ）、中央 `brand-yellow` 太矢印、右 After（`teal-700` ヘッダ）、下に効果カード 3 つ + 結論帯 |
 | `steps` | 進め方 | STEP0→3 の階段。箱は `teal-50` → `teal-100` → `teal-200` → `brand-teal`（最後だけ paper 文字）、右肩上がりの `brand-yellow` 矢印 |
-| `pricing` | 料金 | 入口カード `teal-700`（白の巨大数字）、拡張カード `brand-yellow`（ink の巨大数字）、比較カード `bg`。数字は Poppins 700 / 144px |
+| `pricing` | 料金 | 入口カード `teal-700`（白の巨大数字）、拡張カード `brand-yellow`（ink の巨大数字）、比較カード `bg`。数字は Noto Sans JP 900 / 144px |
 | `closing` | まとめ | `teal-900`→`teal-700` の同相グラデ、メリット 3 点（チェック `brand-yellow`）、右に `brand-yellow` の次の一歩カード、最下段に 72/900 paper のメッセージ |
 
 ## 文字
 
-- 見出し・本文: `Zen Kaku Gothic New`。タイトル帯 44/900、カード見出し 32〜36/900、本文 20〜24/500、注記 18/400。
-- 巨大数字: `Poppins` 700（`--ml-font-display`）。`IBM Plex Mono` はこの型では使わない（投影距離で等幅は硬く見える）。ページ番号だけ mono 可。
+- 見出し・本文: `Noto Sans JP`。タイトル帯 44/900、カード見出し 32〜36/900、本文 20〜24/500、注記 18/400。
+- 巨大数字: `Noto Sans JP`（display = sans と同一） 700（`--ml-font-display`）。`IBM Plex Mono` はこの型では使わない（投影距離で等幅は硬く見える）。ページ番号だけ mono 可。
 - 18px 未満を作らない。投影前提。
 - 強調は 3 手段だけ。①`.marker`（`yellow-100` の下地帯）、②`yellow-700` の文字、③`teal-700` の文字。赤や下線は使わない。
 
@@ -82,5 +82,6 @@ conclusion 120px: brand-yellow 面（ink 900 36px）か teal-700 面（paper 900
 2. 各枚に上表の型を割り当てる。同じ型を 3 連続させない。
 3. `templates/infographic.html` の該当 section をコピーして文言を差し替える。数字は確認済みのものだけ。未確認は「例」を付ける。
 4. `python3 scripts/lint_tokens.py --strict deck.html`、`python3 scripts/render_preview.py deck.html --preset slide_16_9 --each .slide` で全枚を見る。
+   納品時は最高画質で出す: `--scale 2` で 3840×2160 の PNG、`--pdf` でベクター PDF（文字が埋め込まれ、拡大しても劣化しない）。画像貼り込みの pptx や JPEG 圧縮のスライドは作らない。
 5. はみ出し・2 行に折れたタイトル・18px 未満の文字を直す。
 6. pptx が必要なら `references/slides.md` の python-pptx 手順で同じトークンを渡す。画像貼り込みの pptx にはしない（編集不能になる）。
