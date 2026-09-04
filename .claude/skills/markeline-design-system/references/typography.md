@@ -7,6 +7,9 @@
 | 和文・本文・見出し | Noto Sans JP | 400 / 500 / 700 / 900 | Google Fonts（`tokens.json > google_fonts_url`）またはセルフホスト |
 | 数値・KPI・日付・ページ番号・ラベルキャップス | IBM Plex Mono | 500 / 600 / 700 | 同上 |
 | 巨大数字・KPI（インフォグラフィック型） | Noto Sans JP | 900 | `--ml-font-display`。sans と同じ書体で、基準資料「野村工務店様 ご提案」の数字表現に合わせる |
+| 締めの一言（まとめ最下段のみ） | Noto Serif JP | 900 | `--ml-font-serif`。基準資料 14 枚目の明朝。他の場所では使わない |
+
+スライドの役割別サイズは `references/reference-type-scale.md`（基準資料の実測）が正。
 
 書体は和文 1 種 + 等幅 1 種だけ。基準資料を拡大して確認した書体が源ノ角ゴシック系（Noto Sans JP）の Bold/Black だったため、2026-09-02 に Zen Kaku Gothic New から切り替えた。「資料と同じ見え方」が最優先なので、他の Google 日本語フォント（Zen Kaku、M PLUS、BIZ UD 等）に勝手に戻さない。
 

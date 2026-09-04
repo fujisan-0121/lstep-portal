@@ -26,6 +26,7 @@ OUT = ROOT / "assets" / "fonts"
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"
 FAMILIES = [
     "family=Noto+Sans+JP:wght@400..900",
+    "family=Noto+Serif+JP:wght@900",
     "family=IBM+Plex+Mono:wght@500;600;700",
 ]
 CSS_URL = "https://fonts.googleapis.com/css2?" + "&".join(FAMILIES) + "&display=swap"

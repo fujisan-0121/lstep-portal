@@ -84,6 +84,8 @@ def build_css(t: dict) -> str:
     lines.append(f"  --ml-font-sans: {ty['families']['sans']['css']};")
     lines.append(f"  --ml-font-mono: {ty['families']['mono']['css']};")
     lines.append(f"  --ml-font-display: {ty['families']['display']['css']};")
+    if "serif" in ty["families"]:
+        lines.append(f"  --ml-font-serif: {ty['families']['serif']['css']};")
     for k, v in ty["scale_px"].items():
         lines.append(f"  --ml-fs-{k}: {v}px;")
     for k, v in ty["leading"].items():
@@ -162,6 +164,7 @@ def build_py(t: dict) -> str:
         f"FONT_SANS = {ty['families']['sans']['name']!r}\n"
         f"FONT_MONO = {ty['families']['mono']['name']!r}\n"
         f"FONT_DISPLAY = {ty['families']['display']['name']!r}\n"
+        f"FONT_SERIF = {ty['families'].get('serif', {}).get('name', '')!r}\n"
         f"FONT_SANS_OFFICE_FALLBACK = {ty['families']['sans']['office_fallback']!r}\n"
         f"SCALE_PX = {json.dumps(ty['scale_px'])}\n"
         f"SPACE_PX = {json.dumps(t['space_px'])}\n"

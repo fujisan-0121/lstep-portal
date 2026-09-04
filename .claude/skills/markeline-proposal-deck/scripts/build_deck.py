@@ -65,11 +65,25 @@ def check_len(label: str, s: str | None, limit: int, page: int) -> None:
 
 
 # ---------- chrome ----------
+def fit(text: str | None, base: int, max_chars: int, floor: int, width: int) -> int:
+    """Reference behaviour: the size is `base` while the line fits; longer lines shrink
+    (the reference deck's title bars range 70-101px for exactly this reason)."""
+    n = len(plain(text))
+    if n <= max_chars:
+        return base
+    return max(floor, int(width / n))
+
+
 def titlebar(sl: dict, page: int) -> str:
     check_len("title", sl.get("title"), 22, page)
-    sub = f'<span class="sub">{T(sl["sub"])}</span>' if sl.get("sub") else ""
+    title = sl.get("title")
+    if sl.get("sub"):
+        size = fit(title, 74, 20, 56, 1480)
+        return (f'<div class="logobox"><img src="assets/markeline_logo_color.png" alt=""></div>'
+                f'<div class="titlebar two"><span style="font-size:{size}px">{T(title)}</span><span class="sub">{T(sl["sub"])}</span></div>')
+    size = fit(title, 88, 17, 60, 1540)
     return (f'<div class="logobox"><img src="assets/markeline_logo_color.png" alt=""></div>'
-            f'<div class="titlebar">{T(sl.get("title"))}{sub}</div>')
+            f'<div class="titlebar" style="font-size:{size}px">{T(title)}</div>')
 
 
 def conclusion(c, page: int) -> str:
@@ -80,8 +94,9 @@ def conclusion(c, page: int) -> str:
     tone = c.get("tone", "yellow")
     check_len("conclusion", c.get("text"), 40, page)
     em = "em" if tone == "teal" else "em-y"
-    return (f'<div class="conclusion{" teal" if tone == "teal" else ""}">{ico("check", "check")}'
-            f'{T(c.get("text"), em)}</div>')
+    size = fit(c.get("text"), 56, 28, 40, 1580)
+    return (f'<div class="conclusion{" teal" if tone == "teal" else ""}" style="font-size:{size}px">{ico("check", "check")}'
+            f'<span>{T(c.get("text"), em)}</span></div>')
 
 
 def pageno(page: int, total: int, sl: dict) -> str:
@@ -295,7 +310,7 @@ def s_closing(sl, o, page, total):
     <div class="merits"><h3>【組むメリット】</h3><ul>{merits}</ul></div>
     <div class="next"><h3>{ico("run")}{T(nx.get("head", "【次の一歩】"))}</h3><p>{T(nx.get("text"))}</p></div>
   </div>
-  <div class="msg"><span class="q">「</span>{T(sl.get("message"))}<span class="q">」</span>{T(sl.get("message_suffix", "を、御社に。"))}</div>
+  <div class="msg" style="font-size:{fit((sl.get("message") or "") + "  " + (sl.get("message_suffix") or "を、御社に。")[:4], 118, 14, 76, 1700)}px"><span class="q">「</span>{T(sl.get("message"))}<span class="q">」</span><span class="suffix">{T(sl.get("message_suffix", "を、御社に。"))}</span></div>
 </section>'''
 
 
