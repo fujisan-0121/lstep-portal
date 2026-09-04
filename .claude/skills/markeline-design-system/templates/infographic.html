@@ -75,6 +75,7 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
 .panel.win .head{background:var(--ml-teal-700)}
 .panel .in{padding:32px 36px;font-size:30px;line-height:1.6;font-weight:500;flex:1;display:flex;flex-direction:column;gap:20px}
 .panel .in b{font-size:36px;font-weight:900}
+.panel .in ul.list{margin:0;padding-left:28px;font-size:28px;line-height:1.6;font-weight:500}
 .flow{display:flex;align-items:center;gap:14px;justify-content:center}
 .flow .node{flex:1;background:var(--ml-teal-50);border-radius:var(--ml-r-md);padding:20px 12px;text-align:center;font-size:26px;font-weight:700;color:var(--ml-teal-700)}
 .flow .node .ico{width:64px;height:64px;margin:0 auto 6px}
@@ -95,7 +96,7 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
 .tbl td.effect>div{font-weight:900;color:var(--ml-yellow-700);display:grid;grid-template-columns:40px 1fr;align-items:center;gap:12px}
 .tbl td.effect .check{width:40px;height:40px}
 /* before after */
-.ba{display:grid;grid-template-columns:1fr 100px 1fr;align-items:stretch;gap:20px}
+.ba{display:grid;grid-template-columns:1fr 100px 1fr;align-items:stretch;gap:20px;flex:1}
 .ba .panel .in{align-items:center}
 .ba .bigarrow{display:grid;place-items:center;color:var(--ml-brand-yellow)}
 .ba .bigarrow svg{width:90px;height:90px;fill:currentColor}
@@ -103,7 +104,7 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
 .fxcard{display:grid;grid-template-columns:72px 1fr;gap:16px;align-items:center;background:var(--ml-paper);border:var(--ml-bw-rule) solid var(--ml-teal-700);border-radius:var(--ml-r-md);padding:18px 22px}
 .fxcard .ico{width:72px;height:72px;border-radius:50%;background:var(--ml-teal-700);color:var(--ml-paper)}
 .fxcard b{display:block;font-size:26px;font-weight:900;color:var(--ml-teal-700)}
-.fxcard span{font-size:26px;font-weight:500;color:var(--ml-ink);line-height:1.45}
+.fxcard span{font-size:28px;font-weight:500;color:var(--ml-ink);line-height:1.45}
 /* steps */
 .steps{position:relative;flex:1;display:grid;grid-template-columns:repeat(4,1fr);align-items:end;gap:20px;padding-bottom:24px}
 .step{position:relative;z-index:1;border-radius:var(--ml-r-md);padding:28px 26px;min-height:300px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--ml-shadow-md)}
@@ -144,6 +145,45 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
 .closing .next p{margin:0;font-size:40px;font-weight:900;line-height:1.5;border-top:var(--ml-bw-rule) solid var(--ml-ink);padding-top:18px}
 .closing .msg{font-size:84px;font-weight:900;letter-spacing:.06em;text-align:center}
 .closing .msg .q{color:var(--ml-brand-yellow)}
+/* why-now */
+.whynow{display:flex;flex-direction:column;gap:20px;flex:1;justify-content:center}
+.wn{display:grid;grid-template-columns:120px 130px 1fr;align-items:center;gap:28px;background:var(--ml-bg);border-radius:var(--ml-r-md);padding:22px 36px}
+.wn .n{font-family:var(--ml-font-display);font-weight:900;font-size:120px;line-height:1;color:var(--ml-teal-700);text-align:center}
+.wn .ico{width:120px;height:120px;border-radius:50%;background:var(--ml-teal-50)}
+.wn .ico svg{width:64px;height:64px}
+.wn h3{margin:0;font-size:44px;font-weight:900;line-height:1.3}
+.wn h3 .em{color:var(--ml-yellow-700)}
+.wn p{margin:8px 0 0;font-size:26px;color:var(--ml-sub);font-weight:500;line-height:1.5}
+/* case-kpi */
+.casehead{display:inline-flex;align-items:center;gap:16px;background:var(--ml-teal-700);color:var(--ml-paper);font-size:36px;font-weight:900;padding:10px 28px;border-radius:var(--ml-r-md);align-self:flex-start}
+.casehead .tag{background:var(--ml-paper);color:var(--ml-teal-700);padding:2px 14px;border-radius:var(--ml-r-sm);font-size:28px}
+.ckwrap{display:grid;grid-template-columns:1fr 480px;gap:40px;flex:1;align-items:center}
+.ckrows{display:flex;flex-direction:column}
+.ck{display:grid;grid-template-columns:96px 1fr;gap:24px;align-items:center;padding:22px 0;border-bottom:var(--ml-bw-hair) solid var(--ml-line)}
+.ck:last-child{border-bottom:0}
+.ck .ico{width:96px;height:96px;border-radius:50%;background:var(--ml-teal-50)}
+.ck .ico svg{width:52px;height:52px}
+.ck .lab{font-size:34px;font-weight:700;line-height:1.4}
+.ck .nums{font-size:40px;font-weight:900;margin-top:8px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ck .nums .b{font-family:var(--ml-font-display);font-size:84px;color:var(--ml-teal-700);line-height:1}
+.ck .nums .a{font-family:var(--ml-font-display);font-size:124px;color:var(--ml-teal-700);line-height:1}
+.ck .nums .arr{color:var(--ml-brand-yellow);font-size:48px}
+.ckside{background:var(--ml-teal-50);border-radius:var(--ml-r-lg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;text-align:center;height:100%}
+.ckside .ico{width:200px;height:200px;border-radius:50%;background:var(--ml-brand-yellow);color:var(--ml-ink)}
+.ckside .ico svg{width:110px;height:110px}
+.ckside b{font-size:34px;font-weight:900;line-height:1.4}
+/* case-flow */
+.cf{display:grid;grid-template-columns:1fr 1fr;gap:32px;flex:1}
+.cf .list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px;font-size:28px;font-weight:500;line-height:1.5}
+.cf .list li{display:flex;gap:12px;align-items:flex-start}
+.cf .list .x{flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--ml-sub);color:var(--ml-paper);display:grid;place-items:center;font-weight:900;font-size:22px}
+.cf .list .check{flex:0 0 36px;width:36px;height:36px}
+.flow7{display:flex;align-items:center;gap:6px;margin:8px 0 20px}
+.flow7 .node{flex:1;text-align:center;font-size:24px;font-weight:700;color:var(--ml-teal-700)}
+.flow7 .node .ico{width:84px;height:84px;border-radius:50%;background:var(--ml-paper);border:3px solid var(--ml-brand-teal);margin:0 auto 8px}
+.flow7 .node .ico svg{width:44px;height:44px}
+.flow7 .arr{color:var(--ml-brand-yellow);font-size:26px;font-weight:900}
+.cf .flowtitle{font-size:28px;font-weight:900;color:var(--ml-teal-700);text-align:center;border-bottom:var(--ml-bw-rule) solid var(--ml-teal-700);padding-bottom:8px;margin-bottom:8px}
 @page{size:1920px 1080px;margin:0}
 @media print{body{background:var(--ml-paper)}.slide{page-break-after:always;margin:0}.slide+.slide{margin-top:0}}
 </style>
@@ -293,6 +333,72 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
     </div>
   </div>
   <div class="pageno">09 / 10</div>
+</section>
+
+<!-- why-now -->
+<section class="slide" id="why-now">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">始めるなら、“今”が一番安い</div>
+  <div class="body">
+    <div class="whynow">
+      <div class="wn"><div class="n">1</div><div class="ico"><svg><use href="#i-calendar"/></svg></div><div><h3>7月に<span class="em">賃貸名人</span>へ切り戻し</h3><p>切り替えと同時に録音すれば、業務マニュアルが自動で貯まる。後からだと二度手間。</p></div></div>
+      <div class="wn"><div class="n">2</div><div class="ico"><svg><use href="#i-bulb"/></svg></div><div><h3>すでに<span class="em">GPT有料</span>を約30名が利用</h3><p><span class="marker">AI活用の素地は十分</span>。あとは“実行する手”を足すだけ。</p></div></div>
+      <div class="wn"><div class="n">3</div><div class="ico"><svg><use href="#i-chart"/></svg></div><div><h3>空いた時間で担当顧客数が<span class="em">1.5倍〜5倍</span>に</h3><p>今すぐ始めれば、現場が楽になりながら売上も上がる好循環が早く作れる。</p></div></div>
+    </div>
+  </div>
+  <div class="pageno">10 / 14</div>
+</section>
+
+<!-- before-after -->
+<section class="slide" id="before-after">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">効果：手作業が、自動で速く正確に</div>
+  <div class="body">
+    <div class="ba">
+      <div class="panel"><div class="head">Before</div><div class="in"><b>手作業・確認作業が多く、時間も心も消耗</b><ul class="list"><li>手作業で確認・入力</li><li>現場の仕事が増える</li><li>定着せず進まない</li></ul></div></div>
+      <div class="bigarrow"><svg viewBox="0 0 24 24"><path d="M3 9h11V4l8 8-8 8v-5H3z"/></svg></div>
+      <div class="panel win"><div class="head">After</div><div class="in"><b>自動化で、速く・正確・シンプルに</b><ul class="list"><li>メール・Excelを自動で取り込み</li><li>裏側で自動的に情報を吸い上げ</li><li>ナレッジに集約し、活用・蓄積</li></ul></div></div>
+    </div>
+    <div class="fxcards">
+      <div class="fxcard"><div class="ico"><svg><use href="#i-clock"/></svg></div><div><b>時間</b><span>数時間かかっていた仕事が、数分に</span></div></div>
+      <div class="fxcard"><div class="ico"><svg><use href="#i-users"/></svg></div><div><b>離職</b><span>手間とストレスが減り“バケツの穴”を塞ぐ</span></div></div>
+      <div class="fxcard"><div class="ico"><svg><use href="#i-chart"/></svg></div><div><b>キャパ</b><span>8名のまま、業務拡大に耐えられる</span></div></div>
+    </div>
+  </div>
+  <div class="conclusion"><div class="check"><svg><use href="#i-check"/></svg></div>＝コスト削減“だけ”でなく「人を増やさず事業を伸ばせる状態」を作る。</div>
+</section>
+
+<!-- case-kpi -->
+<section class="slide" id="case-kpi">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">実績①：“現場を変えずに”成果が出ている</div>
+  <div class="body">
+    <div class="casehead"><span class="tag">事例</span>広告代理店の事例</div>
+    <div class="ckwrap">
+      <div class="ckrows">
+        <div class="ck"><div class="ico"><svg><use href="#i-clock"/></svg></div><div><div class="lab">1人3〜4時間かかっていた広告入稿を</div><div class="nums"><span class="b">3〜4</span>時間<span class="arr">▶</span><span class="a">15</span>分。</div></div></div>
+        <div class="ck"><div class="ico"><svg><use href="#i-users"/></svg></div><div><div class="lab">現場スタッフが「楽になった」と喜び、</div><div class="nums">月約<span class="a">30</span>時間削減。</div></div></div>
+        <div class="ck"><div class="ico"><svg><use href="#i-target"/></svg></div><div><div class="lab">現場のやり方は変えず、裏側を自動化。</div></div></div>
+      </div>
+      <div class="ckside"><div class="ico"><svg><use href="#i-target"/></svg></div><b>現場はそのまま、<br>効率だけがアップ。</b></div>
+    </div>
+  </div>
+  <div class="conclusion teal"><div class="check"><svg><use href="#i-check"/></svg></div>＝<span class="em">「現場に合わせて圧縮する」</span>が、すでに動いて成果が出ているモデル。</div>
+</section>
+
+<!-- case-flow -->
+<section class="slide" id="case-flow">
+  <div class="logobox"><img src="../assets/markeline_logo_color.png" alt=""></div>
+  <div class="titlebar">実績②：バラバラの情報と転記を、“一つの流れ”に</div>
+  <div class="body">
+    <div class="cf">
+      <div class="panel"><div class="head">Before：散らばっている状態</div><div class="in"><b>あるサービス運営業（介護施設）でも、課題の根っこは同じでした</b><ul class="list"><li><span class="x">×</span>申込・予約・利用者情報・送迎・日次記録・報告書・請求が、メール／複数Excel／紙にバラバラ</li><li><span class="x">×</span>転記作業と確認漏れが絶えず、担当者しか分からない業務に</li></ul></div></div>
+      <div class="panel win"><div class="head">After：一つの流れにまとめた状態</div><div class="in"><div class="flowtitle">一気通貫フロー図</div>
+        <div class="flow7"><div class="node"><div class="ico"><svg><use href="#i-doc"/></svg></div>申込</div><span class="arr">▶</span><div class="node"><div class="ico"><svg><use href="#i-calendar"/></svg></div>予約</div><span class="arr">▶</span><div class="node"><div class="ico"><svg><use href="#i-person"/></svg></div>利用者台帳</div><span class="arr">▶</span><div class="node"><div class="ico"><svg><use href="#i-car"/></svg></div>送迎</div><span class="arr">▶</span><div class="node"><div class="ico"><svg><use href="#i-book"/></svg></div>日次記録</div><span class="arr">▶</span><div class="node"><div class="ico"><svg><use href="#i-yen"/></svg></div>請求</div></div>
+        <ul class="list"><li><div class="check"><svg><use href="#i-check"/></svg></div>現場と事務が、同じ画面・同じ情報を見ながら進められる</li><li><div class="check"><svg><use href="#i-check"/></svg></div>転記作業と確認漏れを削減</li><li><div class="check"><svg><use href="#i-check"/></svg></div>AIが送迎ルート案・シフトの下書きまで自動で作成</li></ul></div></div>
+    </div>
+  </div>
+  <div class="conclusion teal"><div class="check"><svg><use href="#i-check"/></svg></div>御社の“情報の分断・手作業の山”も、同じように<span class="em">一本化できます</span>。</div>
 </section>
 
 <!-- closing -->

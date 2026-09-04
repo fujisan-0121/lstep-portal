@@ -5,3 +5,5 @@
   MARKELINE 名義の LP・スライド・バナー・帳票など、あらゆるビジュアル成果物を作る前に `SKILL.md` を読み、
   色・フォント・余白・ロゴは `tokens/tokens.json` 由来の値だけを使う。目分量での近似は禁止。
   仕上げに `python3 .claude/skills/markeline-design-system/scripts/lint_tokens.py --strict <出力>` を通す。
+- `.claude/skills/markeline-proposal-deck/`: クライアント向け提案書の生成スキル。ヒアリングメモ → `outline.json` → `scripts/build_deck.py` で
+  野村工務店様ご提案の型（14枚）どおりの HTML / 2倍PNG / PDF を出す。見た目はデザインシステムに依存する。
