@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Build a MARKELINE proposal deck (HTML + 2x PNG + vector PDF) from an outline JSON.
 
-    python3 scripts/build_deck.py outline.json --out ./deck --render
+    python3 scripts/build_deck.py outline.json --out ./deck --render --pptx
     python3 scripts/build_deck.py outline.json --out ./deck            # HTML only
+    (--pptx adds deck.pptx built from native shapes; see build_pptx.py)
     python3 scripts/build_deck.py outline.json --check                 # validate + warnings only
 
 The CSS, icon sprite, tokens and fonts all come from the sibling skill
@@ -30,10 +31,27 @@ if not DS.exists():  # fall back to an env override
 ICONS = {"clock", "users", "yen", "check", "calendar", "bulb", "doc", "phone", "chart", "building",
          "car", "person", "folder", "hands", "book", "run", "target", "sprout"}
 WARN: list[str] = []
+OUTLINE_DIR = Path(".")          # `image` paths in the outline are resolved against this
+IMAGES: list[Path] = []          # illustrations to stage into <out>/assets/illustrations/
 
 
 def warn(msg: str) -> None:
     WARN.append(msg)
+
+
+def img(path: str | None, cls: str = "ill") -> str:
+    """Resolve an illustration path from the outline; returns an <img> or '' (with a warning)."""
+    if not path:
+        return ""
+    p = Path(path)
+    if not p.is_absolute():
+        p = (OUTLINE_DIR / p).resolve()
+    if not p.exists():
+        warn(f"image not found: {path}")
+        return ""
+    if p not in IMAGES:
+        IMAGES.append(p)
+    return f'<img class="{cls}" src="assets/illustrations/{html.escape(p.name)}" alt="">'
 
 
 # ---------- text ----------
@@ -107,13 +125,15 @@ def pageno(page: int, total: int, sl: dict) -> str:
 def s_cover(sl, o, page, total):
     title = sl.get("title") or f'{o["client"]}{o.get("honorific", "様")} ご提案'
     label = f'<p class="label">{T(sl["label"])}</p>' if sl.get("label") else ""
-    return f'''<section class="slide cover">
+    ill = img(sl.get("image"))
+    h1_style = f' style="font-size:{fit(title, 126, 8, 72, 1040)}px"' if ill else ""
+    return f'''<section class="slide cover{" withimg" if ill else ""}">
   <svg class="waves" viewBox="0 0 1920 1080" preserveAspectRatio="none" fill="none" stroke="#A3DADB" stroke-width="2">
     <path d="M-50 180C300 60 500 320 900 220S1500 40 1980 200"/><path d="M-50 240C300 120 500 380 900 280S1500 100 1980 260"/><path d="M-50 300C300 180 500 440 900 340S1500 160 1980 320"/>
     <path d="M-50 900C300 780 500 1040 900 940S1500 760 1980 920"/><path d="M-50 960C300 840 500 1100 900 1000S1500 820 1980 980"/></svg>
   <div class="logobox"><img src="assets/markeline_logo_color.png" alt="MARKELINE"></div>
-  {label}<h1>{T(title)}</h1><p>〜 {T(sl.get("subtitle"))} 〜</p>
-  <div class="company">{T(o.get("company", "株式会社MARKELINE"))}</div>
+  {label}<h1{h1_style}>{T(title)}</h1><p>〜 {T(sl.get("subtitle"))} 〜</p>
+  <div class="company">{T(o.get("company", "株式会社MARKELINE"))}</div>{ill}
 </section>'''
 
 
@@ -163,10 +183,11 @@ def s_kpi(sl, o, page, total):
 
 def s_statement(sl, o, page, total):
     check_len("statement quote", sl.get("quote"), 14, page)
-    return f'''<section class="slide statement">
+    ill = img(sl.get("image"))
+    return f'''<section class="slide statement{" withimg" if ill else ""}">
   <div class="tag">{ico("sprout")}{T(sl.get("tag"))}</div>
   <p class="quote"><span class="q">「</span>{T(sl.get("quote"))}<span class="q">」</span></p>
-  <div class="note">{ico("bulb")}<div>{T(sl.get("note"))}</div></div>
+  <div class="note">{ico("bulb")}<div>{T(sl.get("note"))}</div></div>{ill}
   <img src="assets/markeline_logo_color.png" alt="" style="position:absolute;right:48px;bottom:24px;height:110px">
 </section>'''
 
@@ -185,8 +206,9 @@ def s_compare(sl, o, page, total):
     def panel(p, win):
         body = f"<span>{T(p['body'])}</span>" if p.get("body") else ""
         flow = _flow(p.get("flow", []), p.get("sep", "▶" if win else "×"), page)
-        return (f'<div class="panel{" win" if win else ""}"><div class="head">{T(p.get("head"))}</div>'
-                f'<div class="in" style="justify-content:center"><b>{T(p.get("claim"))}</b>{body}{flow}</div></div>')
+        ill = img(p.get("image"))
+        return (f'<div class="panel{" win" if win else ""}{" withimg" if ill else ""}"><div class="head">{T(p.get("head"))}</div>'
+                f'<div class="in" style="justify-content:center">{ill}<b>{T(p.get("claim"))}</b>{body}{flow}</div></div>')
     return (f'<section class="slide">{titlebar(sl, page)}<div class="body"><div class="panels">'
             f'{panel(sl["left"], False)}{panel(sl["right"], True)}</div></div>'
             f'{conclusion(sl.get("conclusion"), page)}{pageno(page, total, sl)}</section>')
@@ -213,8 +235,9 @@ def s_table(sl, o, page, total):
 
 def _panel_list(p, win):
     lis = "".join(f"<li>{T(i)}</li>" for i in p.get("items", []))
-    return (f'<div class="panel{" win" if win else ""}"><div class="head">{T(p.get("head"))}</div>'
-            f'<div class="in"><b>{T(p.get("claim"))}</b><ul class="list">{lis}</ul></div></div>')
+    ill = img(p.get("image"))
+    return (f'<div class="panel{" win" if win else ""}{" withimg" if ill else ""}"><div class="head">{T(p.get("head"))}</div>'
+            f'<div class="in">{ill}<b>{T(p.get("claim"))}</b><ul class="list">{lis}</ul></div></div>')
 
 
 def s_before_after(sl, o, page, total):
@@ -275,7 +298,7 @@ def s_case_kpi(sl, o, page, total):
             nums = f'<div class="nums">{T(r.get("prefix"))}{b}<span class="a">{T(r["after"])}</span>{T(r.get("after_unit"))}</div>'
         rows.append(f'<div class="ck">{ico(r.get("icon", "check"))}<div><div class="lab">{T(r.get("label"))}</div>{nums}</div></div>')
     side = sl.get("side", {})
-    side_html = f'<div class="ckside">{ico(side.get("icon", "target"))}<b>{T(side.get("text"))}</b></div>'
+    side_html = f'<div class="ckside">{img(side.get("image")) or ico(side.get("icon", "target"))}<b>{T(side.get("text"))}</b></div>'
     return (f'<section class="slide">{titlebar(sl, page)}<div class="body">'
             f'<div class="casehead"><span class="tag">事例</span>{T(sl.get("case"))}</div>'
             f'<div class="ckwrap"><div class="ckrows">{"".join(rows)}</div>{side_html}</div></div>'
@@ -285,7 +308,8 @@ def s_case_kpi(sl, o, page, total):
 def s_case_flow(sl, o, page, total):
     b = sl["before"]
     blis = "".join(f'<li><span class="x">×</span>{T(i)}</li>' for i in b.get("items", []))
-    before = (f'<div class="panel"><div class="head">{T(b.get("head"))}</div><div class="in"><b>{T(b.get("claim"))}</b>'
+    bill = img(b.get("image"))
+    before = (f'<div class="panel{" withimg" if bill else ""}"><div class="head">{T(b.get("head"))}</div><div class="in">{bill}<b>{T(b.get("claim"))}</b>'
               f'<ul class="list">{blis}</ul></div></div>')
     a = sl["after"]
     nodes = []
@@ -370,6 +394,10 @@ def stage_assets(out: Path) -> None:
         shutil.copytree(fonts_src, fonts_dst)
     for f in ("markeline_logo_color.png", "markeline_logo_white.png"):
         shutil.copy(DS / "assets" / f, out / "assets" / f)
+    if IMAGES:
+        (out / "assets" / "illustrations").mkdir(exist_ok=True)
+        for p in IMAGES:
+            shutil.copy(p, out / "assets" / "illustrations" / p.name)
 
 
 def main() -> int:
@@ -377,8 +405,11 @@ def main() -> int:
     ap.add_argument("outline")
     ap.add_argument("--out", default="deck")
     ap.add_argument("--render", action="store_true", help="also write 2x PNGs and a vector PDF via the design-system renderer")
+    ap.add_argument("--pptx", action="store_true", help="also write deck.pptx (native shapes, editable in Google Slides / PowerPoint)")
     ap.add_argument("--check", action="store_true", help="validate only")
     a = ap.parse_args()
+    global OUTLINE_DIR
+    OUTLINE_DIR = Path(a.outline).resolve().parent
     outline = json.loads(Path(a.outline).read_text(encoding="utf-8"))
     html_out = build(outline)
     if WARN:
@@ -399,6 +430,10 @@ def main() -> int:
                "--preset", "slide_16_9", "--each", ".slide", "--scale", "2", "--pdf", "--out", str(out / "deck")]
         subprocess.run(cmd, check=True)
         subprocess.run([sys.executable, str(DS / "scripts" / "lint_tokens.py"), "--strict", str(out / "deck.html")], check=False)
+    if a.pptx:
+        import build_pptx
+        build_pptx.build(outline, out / "deck.pptx", base=OUTLINE_DIR)
+        print(f"wrote {out / 'deck.pptx'} (editable: import into Google Slides via ファイル → インポート)")
     return 0
 
 

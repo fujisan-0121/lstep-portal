@@ -49,7 +49,7 @@ from PIL import Image, ImageDraw, ImageFont
 W,H = 1200,630
 im = Image.new('RGB',(W,H),RGB['teal-900'])
 d = ImageDraw.Draw(im)
-font = ImageFont.truetype('ZenKakuGothicNew-Black.ttf', 64)  # フォントファイルは Google Fonts から取得して同梱
+font = ImageFont.truetype('NotoSansJP-Black.ttf', 64)  # Google Fonts の Noto Sans JP（static/Black）を取得して使う
 d.text((80,220),'LINE公式を、\n成果が出る仕組みに。',font=font,fill=RGB['paper'])
 logo = Image.open('.claude/skills/markeline-design-system/assets/markeline_logo_white.png').convert('RGBA')
 logo.thumbnail((225,160)); im.paste(logo,(W-225-60,H-160-40),logo)

@@ -6,7 +6,7 @@
 |---|---|---|---|
 | 和文・本文・見出し | Noto Sans JP | 400 / 500 / 700 / 900 | Google Fonts（`tokens.json > google_fonts_url`）またはセルフホスト |
 | 数値・KPI・日付・ページ番号・ラベルキャップス | IBM Plex Mono | 500 / 600 / 700 | 同上 |
-| 巨大数字・KPI（インフォグラフィック型） | Noto Sans JP | 900 | `--ml-font-display`。sans と同じ書体で、基準資料「野村工務店様 ご提案」の数字表現に合わせる |
+| 巨大数字・KPI（インフォグラフィック型） | Noto Sans JP | 900 | `--ml-font-display`。sans と同じ書体で、基準デッキ（工務店向け提案）の数字表現に合わせる |
 | 締めの一言（まとめ最下段のみ） | Noto Serif JP | 900 | `--ml-font-serif`。基準資料 14 枚目の明朝。他の場所では使わない |
 
 スライドの役割別サイズは `references/reference-type-scale.md`（基準資料の実測）が正。

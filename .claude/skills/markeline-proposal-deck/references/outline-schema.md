@@ -1,12 +1,12 @@
 # outline.json の書き方
 
-`scripts/build_deck.py` が読む JSON。`assets/examples/nomura_outline.json` が完全な実例。
+`scripts/build_deck.py` が読む JSON。`assets/examples/sample_outline.json` が完全な実例。
 
 ## トップレベル
 
 ```json
 {
-  "client": "野村工務店",        // 敬称なし
+  "client": "サンプル工務店",        // 敬称なし
   "honorific": "様",
   "date": "2026-06-01",
   "company": "株式会社MARKELINE",
@@ -34,11 +34,45 @@
 
 `clock users yen check calendar bulb doc phone chart building car person folder hands book run target sprout`
 
+## 挿絵（`image` フィールド）
+
+資料ごとに作った挿絵を置ける枠。値は outline.json からの相対パス（PNG / JPG / SVG、正方形推奨）。
+省略すればピクトグラムのまま。置ける場所と表示サイズは `references/illustrations.md`。
+
+| 型 | フィールド |
+|---|---|
+| cover | `image`（右側中央、文字は左寄せになる） |
+| statement | `image`（一言主張の右） |
+| compare | `left.image` / `right.image`（パネル右上） |
+| before_after | `before.image` / `after.image`（パネル右上） |
+| case_flow | `before.image`（Before パネル右上） |
+| case_kpi | `side.image`（右カード。アイコンの代わり） |
+
+```json
+{"type":"statement","tag":"課題の根っこは1つ","quote":"実行する人と、\n仕組みがない","note":"…","image":"illustrations/root_cause.png"}
+```
+
+## ビルドの出力
+
+```bash
+python3 scripts/build_deck.py outline.json --out deck --render --pptx
+```
+
+| ファイル | 中身 | 用途 |
+|---|---|---|
+| `deck.html` | HTML 一式（tokens.css・フォント・挿絵を同梱） | ブラウザで確認、ソース |
+| `deck-NN.png` | 3840×2160 PNG | チャット・LINE・サムネ |
+| `deck.pdf` | ベクター PDF（文字埋め込み） | 納品・印刷 |
+| `deck.pptx` | 図形とテキストで組んだ pptx（画像貼り込みではない） | **Google スライドで編集**（ファイル → インポート → スライド）、PowerPoint |
+
+pptx の文字は既定で `Noto Sans JP`（太字）。Google スライドは Noto Sans JP を内蔵しているので、インポート直後から同じ書体で表示・編集できる。
+PowerPoint で Black ウェイトまで再現したいときは `scripts/build_pptx.py outline.json --weight black`（フォントをインストールした環境向け）。
+
 ## 型ごとのフィールド
 
 ### cover
 ```json
-{"type":"cover","label":"業務効率化のご提案","title":"野村工務店様 ご提案","subtitle":"現場のやり方を変えずに、業務を前に進める"}
+{"type":"cover","label":"業務効率化のご提案","title":"サンプル工務店様 ご提案","subtitle":"現場のやり方を変えずに、業務を前に進める"}
 ```
 `title` を省くと `client + honorific + " ご提案"`。
 

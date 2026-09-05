@@ -39,6 +39,16 @@ body{margin:0;background:var(--ml-bg);font-family:var(--ml-font-sans);color:var(
 .cover h1{position:relative;margin:0;font-size:126px;font-weight:900;letter-spacing:.04em;padding-bottom:20px;border-bottom:4px solid var(--ml-brand-yellow)}
 .cover p{position:relative;margin:36px 0 0;font-size:48px;font-weight:700;letter-spacing:.06em}
 .cover .company{position:absolute;right:72px;bottom:56px;font-size:36px;font-weight:700}
+/* illustration slots: square images supplied per deck (proposal-deck references/illustrations.md) */
+.cover.withimg{align-items:flex-start;text-align:left;padding-left:120px}
+.cover img.ill{position:absolute;right:120px;top:50%;transform:translateY(-50%);width:560px;height:560px;object-fit:contain}
+.statement img.ill{position:absolute;right:100px;top:50%;transform:translateY(-50%);width:480px;height:480px;object-fit:contain}
+.statement.withimg .quote,.statement.withimg .note{padding-right:600px}
+.statement.withimg .note{font-size:48px}
+.panel.withimg .in{position:relative;justify-content:flex-start}
+.panel.withimg .in>img.ill{position:absolute;right:28px;top:24px;width:220px;height:220px;object-fit:contain}
+.panel.withimg .in>b,.panel.withimg .in>span,.panel.withimg .in>ul.list{padding-right:270px}
+.ckside img.ill{width:360px;height:360px;object-fit:contain}
 /* goals */
 .goal{display:flex;align-items:center;gap:36px;background:var(--ml-bg);border-left:12px solid var(--ml-brand-yellow);padding:44px 48px;border-radius:0 var(--ml-r-md) var(--ml-r-md) 0;flex:0 0 auto}
 .body.center{justify-content:center}

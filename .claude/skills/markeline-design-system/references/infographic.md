@@ -1,6 +1,6 @@
 # インフォグラフィック提案書スタイル（提案書・セミナー資料の標準）
 
-基準サンプル: 「野村工務店様 ご提案」（Google Drive, 2026-06, 14枚）。クライアント提案・セミナー投影・営業資料はこの型で作る。
+基準サンプル: 基準デッキ（工務店向け提案）（Google Drive, 2026-06, 14枚）。クライアント提案・セミナー投影・営業資料はこの型で作る。
 `references/slides.md` の余白多めの編集誌風は、社内向け・報告書・議事録など「読む資料」に使う。迷ったらこちら（インフォグラフィック）。
 
 土台は `templates/infographic.html`（1920×1080、8 種の型を実装済み）。コピーして中身を差し替える。
@@ -98,4 +98,4 @@ conclusion 120px: brand-yellow 面（ink 900 36px）か teal-700 面（paper 900
 4. `python3 scripts/lint_tokens.py --strict deck.html`、`python3 scripts/render_preview.py deck.html --preset slide_16_9 --each .slide` で全枚を見る。
    納品時は最高画質で出す: `--scale 2` で 3840×2160 の PNG、`--pdf` でベクター PDF（文字が埋め込まれ、拡大しても劣化しない）。画像貼り込みの pptx や JPEG 圧縮のスライドは作らない。
 5. はみ出し・2 行に折れたタイトル・24px 未満の文字・1 枚に主張が 2 つある枚を直す。直し方は「削る」か「枚を割る」。縮めない。
-6. pptx が必要なら `references/slides.md` の python-pptx 手順で同じトークンを渡す。画像貼り込みの pptx にはしない（編集不能になる）。
+6. pptx が必要なら、提案書は `markeline-proposal-deck/scripts/build_pptx.py`（この型を図形＋テキストで再現、Google スライドで編集可）を使う。それ以外は `references/slides.md` の python-pptx 手順で同じトークンを渡す。画像貼り込みの pptx にはしない（編集不能になる）。
