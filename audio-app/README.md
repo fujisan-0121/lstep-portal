@@ -58,7 +58,40 @@ bash test/smoke.sh     # npm run dev を起動した状態で API の一連の�
 
 ## 本番デプロイ手順
 
-前提: Cloudflare アカウント、Cloudflare に紐づいたドメイン、Zero Trust（Access）が有効。
+前提: Cloudflare アカウント、Cloudflare に紐づいたドメイン（markeline.net）、Zero Trust（Access）が有効。
+
+### 一番速い方法（1コマンド）
+
+API トークンを用意して、次を実行すると D1 / R2 / Access アプリ / マイグレーション / デプロイまで一気に終わります。
+
+```bash
+cd audio-app && npm install
+CLOUDFLARE_API_TOKEN=xxxx CLOUDFLARE_ACCOUNT_ID=yyyy npm run deploy:full
+# 完了すると https://audio.markeline.net が開ける
+```
+
+省略可能な環境変数: `AUDIO_DOMAIN`（既定 audio.markeline.net）、`ADMIN_EMAILS`（既定 fujiwara@markeline.net）、
+`ALLOWED_EMAIL_DOMAINS`（既定 markeline.net）、`ALLOWED_EMAILS`（ドメイン外で個別に許可する人）。
+
+#### API トークンの権限
+
+Cloudflare ダッシュボード → My Profile → API Tokens → Create Token → Custom token で次を付ける。
+
+| 対象 | 権限 |
+| --- | --- |
+| Account / Workers Scripts | Edit |
+| Account / D1 | Edit |
+| Account / Workers R2 Storage | Edit |
+| Account / Access: Apps and Policies | Edit |
+| Account / Access: Organizations, Identity Providers, and Groups | Read |
+| Zone / Workers Routes | Edit（Zone Resources は markeline.net） |
+| Zone / DNS | Edit（カスタムドメインの作成に必要） |
+| User / User Details | Read（トークン検証に使う） |
+
+Account ID は Cloudflare ダッシュボードの Workers & Pages 画面の右側に表示される。
+トークンはチャットや Vault に貼らず、環境変数（Claude Code の環境設定、または自分の端末のシェル）に入れる。
+
+### 手動で行う場合
 
 1. リソースを作る
    ```bash

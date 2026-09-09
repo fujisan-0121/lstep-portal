@@ -12,7 +12,8 @@
   "preview_urls": false,
 
   // 本番の入口はカスタムドメイン。Cloudflare Access のアプリケーションもこのドメインで作る
-  // "routes": [{ "pattern": "audio.example.co.jp", "custom_domain": true }],
+  // scripts/deploy.mjs が AUDIO_DOMAIN（既定 audio.markeline.net）で有効化する
+  // "routes": [{ "pattern": "audio.markeline.net", "custom_domain": true }],
 
   "assets": {
     "directory": "./public",
@@ -46,7 +47,7 @@
     // Access アプリケーションの Audience (AUD) タグ
     "ACCESS_AUD": "",
     // 管理者のメールアドレス（カンマ区切り）。ここに載っている人は常に管理者
-    "ADMIN_EMAILS": "",
+    "ADMIN_EMAILS": "fujiwara@markeline.net",
     // 1ファイルの上限（MB）
     "MAX_UPLOAD_MB": "200"
   },

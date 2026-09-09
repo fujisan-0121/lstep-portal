@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:full": "node scripts/deploy.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/",
     "db:migrate:local": "wrangler d1 migrations apply audio_db --local",
