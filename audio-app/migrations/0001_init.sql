@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE TABLE IF NOT EXISTS categories (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   name        TEXT NOT NULL UNIQUE,
-  color       TEXT NOT NULL DEFAULT '#E8630A',
+  color       TEXT NOT NULL DEFAULT '#F8B800',
   sort_order  INTEGER NOT NULL DEFAULT 0,
   created_at  TEXT NOT NULL
 );
@@ -63,8 +63,8 @@ CREATE INDEX IF NOT EXISTS idx_comments_episode ON comments(episode_id, created_
 
 -- 初期カテゴリー（管理画面で自由に変更できる）
 INSERT OR IGNORE INTO categories (name, color, sort_order, created_at) VALUES
-  ('全体朝礼',   '#E8630A', 1, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-  ('社長メッセージ', '#1C1C3A', 2, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-  ('営業',       '#2F7D6D', 3, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  ('全体朝礼',   '#F8B800', 1, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  ('社長メッセージ', '#009098', 2, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  ('営業',       '#E07A1F', 3, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
   ('研修',       '#5B4B8A', 4, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
-  ('その他',     '#8A8078', 9, strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+  ('その他',     '#7C8A8B', 9, strftime('%Y-%m-%dT%H:%M:%fZ','now'));

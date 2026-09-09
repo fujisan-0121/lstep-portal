@@ -132,7 +132,7 @@ app.post('/api/admin/categories', async (c) => {
   const body = await c.req.json<{ name?: string; color?: string; sort_order?: number }>();
   const name = (body.name ?? '').trim().slice(0, 30);
   if (!name) return c.json({ error: 'カテゴリー名を入力してください' }, 400);
-  const color = validColor(body.color) ?? '#E8630A';
+  const color = validColor(body.color) ?? '#F8B800';
   const sort = Number.isFinite(body.sort_order) ? Number(body.sort_order) : 0;
   try {
     const r = await c.env.DB.prepare('INSERT INTO categories (name, color, sort_order, created_at) VALUES (?, ?, ?, ?)')
@@ -149,7 +149,7 @@ app.put('/api/admin/categories/:id', async (c) => {
   const body = await c.req.json<{ name?: string; color?: string; sort_order?: number }>();
   const name = (body.name ?? '').trim().slice(0, 30);
   if (!name) return c.json({ error: 'カテゴリー名を入力してください' }, 400);
-  const color = validColor(body.color) ?? '#E8630A';
+  const color = validColor(body.color) ?? '#F8B800';
   const sort = Number.isFinite(body.sort_order) ? Number(body.sort_order) : 0;
   await c.env.DB.prepare('UPDATE categories SET name = ?, color = ?, sort_order = ? WHERE id = ?')
     .bind(name, color, sort, id)

@@ -8,6 +8,8 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
 let html = read('demo/index.html');
+const logo = 'data:image/png;base64,' + fs.readFileSync(path.join(root, 'public/logo-mark.png')).toString('base64');
+html = html.replace('src="../public/logo-mark.png"', `src="${logo}"`);
 html = html.replace('<link rel="stylesheet" href="../public/style.css">', `<style>\n${read('public/style.css')}\n</style>`);
 html = html.replace('<script src="../public/demo-mock.js"></script>', `<script>\n${read('public/demo-mock.js')}\n</script>`);
 html = html.replace('<script src="../public/app.js"></script>', `<script>\n${read('public/app.js')}\n</script>`);

@@ -48,7 +48,7 @@
     return '<span class="pill none">未再生</span>';
   };
   const initial = (name) => esc((name || '?').trim().charAt(0));
-  const catPill = (ep) => ep.category_name ? `<span class="pill"><span class="dot" style="background:${esc(ep.category_color || '#E8630A')}"></span>${esc(ep.category_name)}</span>` : '<span class="pill none">未分類</span>';
+  const catPill = (ep) => ep.category_name ? `<span class="pill"><span class="dot" style="background:${esc(ep.category_color || '#F8B800')}"></span>${esc(ep.category_name)}</span>` : '<span class="pill none">未分類</span>';
 
   let toastTimer;
   const toast = (msg, err = false) => {
@@ -86,7 +86,7 @@
   const player = {
     ep: null,
     speeds: [1, 1.25, 1.5, 2],
-    speedIdx: 0,
+    speedIdx: (() => { try { const i = Number(localStorage.getItem('audio_speed_idx')); return i >= 0 && i < 4 ? i : 0; } catch (e) { return 0; } })(),
     lastSent: 0,
     seeking: false,
     async load(ep, autoplay = true) {
@@ -129,10 +129,22 @@
       if (!this.ep) return;
       audio.currentTime = Math.max(0, Math.min((audio.duration || 0) || Infinity, audio.currentTime + sec));
     },
-    cycleSpeed() {
-      this.speedIdx = (this.speedIdx + 1) % this.speeds.length;
-      audio.playbackRate = this.speeds[this.speedIdx];
+    setSpeed(idx) {
+      this.speedIdx = idx;
+      audio.playbackRate = this.speeds[idx];
+      try { localStorage.setItem('audio_speed_idx', String(idx)); } catch (e) { /* noop */ }
+      this.renderSpeed();
+      toast(`再生速度 ${this.speeds[idx]}×`);
+    },
+    renderSpeed() {
       $('#p-speed').textContent = `${this.speeds[this.speedIdx]}×`;
+      document.querySelectorAll('#speed-menu button').forEach((b) => b.classList.toggle('active', Number(b.dataset.speed) === this.speedIdx));
+    },
+    toggleSpeedMenu(force) {
+      const menu = $('#speed-menu');
+      const open = force !== undefined ? force : menu.hidden;
+      menu.hidden = !open;
+      $('#p-speed').classList.toggle('open', open);
     },
     async close() {
       if (!this.ep) return;
@@ -630,7 +642,7 @@
           </tr>`).join('')}
           <tr data-cat="new">
             <td><input class="input" name="name" placeholder="新しいカテゴリー名" maxlength="30"></td>
-            <td><input type="color" name="color" value="#E8630A" style="width:44px;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff"></td>
+            <td><input type="color" name="color" value="#F8B800" style="width:44px;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff"></td>
             <td><input class="input num" name="sort_order" type="number" value="${cats.length + 1}" style="width:80px"></td>
             <td></td>
             <td class="actions"><button class="btn primary sm" data-add>追加</button></td>
@@ -740,7 +752,16 @@
   $('#p-play').addEventListener('click', () => player.toggle());
   $('#p-back').addEventListener('click', () => player.skip(-15));
   $('#p-fwd').addEventListener('click', () => player.skip(15));
-  $('#p-speed').addEventListener('click', () => player.cycleSpeed());
+  $('#speed-menu').innerHTML = player.speeds.map((s, i) => `<button type="button" data-speed="${i}">${s}×</button>`).join('');
+  player.renderSpeed();
+  $('#p-speed').addEventListener('click', (e) => { e.stopPropagation(); player.toggleSpeedMenu(); });
+  $('#speed-menu').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-speed]');
+    if (!b) return;
+    player.setSpeed(Number(b.dataset.speed));
+    player.toggleSpeedMenu(false);
+  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('#speed-menu') && !$('#speed-menu').hidden) player.toggleSpeedMenu(false); });
   $('#p-close').addEventListener('click', () => player.close());
   $('#p-title').addEventListener('click', () => { if (player.ep) go(`/episode/${player.ep.id}`); });
   const seek = $('#p-seek');

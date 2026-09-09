@@ -18,11 +18,11 @@
       { id: 6, email: 'ikezawa@example.co.jp', name: '池沢', role: 'member', created_at: ago(10), last_seen_at: ago(9) },
     ];
     const categories = [
-      { id: 1, name: '全体朝礼', color: '#E8630A', sort_order: 1, created_at: ago(60) },
-      { id: 2, name: '社長メッセージ', color: '#1C1C3A', sort_order: 2, created_at: ago(60) },
-      { id: 3, name: '営業', color: '#2F7D6D', sort_order: 3, created_at: ago(60) },
+      { id: 1, name: '全体朝礼', color: '#F8B800', sort_order: 1, created_at: ago(60) },
+      { id: 2, name: '社長メッセージ', color: '#009098', sort_order: 2, created_at: ago(60) },
+      { id: 3, name: '営業', color: '#E07A1F', sort_order: 3, created_at: ago(60) },
       { id: 4, name: '研修', color: '#5B4B8A', sort_order: 4, created_at: ago(60) },
-      { id: 5, name: 'その他', color: '#8A8078', sort_order: 9, created_at: ago(60) },
+      { id: 5, name: 'その他', color: '#7C8A8B', sort_order: 9, created_at: ago(60) },
     ];
     const ep = (id, title, category_id, description, days, status = 'published') => ({
       id, title, description, category_id, audio_key: `demo/${id}`, audio_content_type: 'audio/wav', audio_size: 1400000,
@@ -112,7 +112,7 @@
     if (p === '/api/admin/categories' && method === 'POST') {
       const name = (body.name || '').trim(); if (!name) return err('カテゴリー名を入力してください', 400);
       if (db.categories.some((c) => c.name === name)) return err('同じ名前のカテゴリーがあります', 409);
-      const id = nextId(); db.categories.push({ id, name, color: body.color || '#E8630A', sort_order: Number(body.sort_order) || 0, created_at: now() }); save(); return respond({ ok: true, id });
+      const id = nextId(); db.categories.push({ id, name, color: body.color || '#F8B800', sort_order: Number(body.sort_order) || 0, created_at: now() }); save(); return respond({ ok: true, id });
     }
     if ((a = m(/^\/api\/admin\/categories\/(\d+)$/))) {
       const c = db.categories.find((x) => x.id === a[0]); if (!c) return err('見つかりません', 404);
