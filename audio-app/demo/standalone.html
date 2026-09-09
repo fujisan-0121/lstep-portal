@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>社内音声ライブラリ（デモ）</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Cormorant+Garamond:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* 社内音声配信 — 仕組み化研修ポータルと同じ配色・書体で統一 */
+:root {
+  --navy: #1C1C3A;
+  --navy-mid: #2A2A52;
+  --navy-soft: #3A3A66;
+  --orange: #E8630A;
+  --orange-l: #F4874A;
+  --orange-pale: #FEF3E8;
+  --cream: #FAF8F4;
+  --sand: #F2EDE4;
+  --sand-deep: #E9E2D6;
+  --border: #E0D9CE;
+  --muted: #8A8078;
+  --text: #1C1C3A;
+  --white: #FFFFFF;
+  --green: #2F7D6D;
+  --green-pale: #E6F2EE;
+  --red: #B5432E;
+  --red-pale: #F8E9E5;
+  --shadow: 0 8px 24px rgba(28, 28, 58, .08);
+  --sidebar-w: 240px;
+  --player-h: 84px;
+  --radius: 10px;
+  --serif: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+  --sans: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  --en: 'Cormorant Garamond', Georgia, serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { color-scheme: light; }
+body {
+  font-family: var(--sans);
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; }
+a { color: inherit; text-decoration: none; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ── 骨組み ───────────────────────────── */
+.shell { display: flex; min-height: 100vh; }
+.sidebar {
+  width: var(--sidebar-w); flex: none;
+  background: var(--navy); color: var(--white);
+  position: sticky; top: 0; height: 100vh;
+  display: flex; flex-direction: column;
+  padding: 28px 18px calc(var(--player-h) + 16px);
+}
+.brand { padding: 0 8px 26px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 18px; }
+.brand .en { font-family: var(--en); font-size: 12px; letter-spacing: .24em; color: var(--orange); text-transform: uppercase; display: block; margin-bottom: 6px; }
+.brand h1 { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: .04em; line-height: 1.4; text-wrap: balance; }
+.brand h1 span { color: var(--orange); }
+
+.nav { display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; letter-spacing: .18em; color: rgba(255,255,255,.4); text-transform: uppercase; padding: 14px 10px 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 8px;
+  color: rgba(255,255,255,.72); font-size: 13.5px;
+  transition: background .15s, color .15s; width: 100%; text-align: left;
+}
+.nav-item:hover { background: rgba(255,255,255,.06); color: var(--white); }
+.nav-item.active { background: var(--orange); color: var(--white); font-weight: 500; }
+.nav-item .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px rgba(255,255,255,.35); }
+.nav-item .cnt { margin-left: auto; font-size: 11px; opacity: .6; font-variant-numeric: tabular-nums; }
+.nav-item svg { width: 16px; height: 16px; flex: none; }
+.me { margin-top: auto; padding: 14px 10px 0; border-top: 1px solid rgba(255,255,255,.1); font-size: 12px; color: rgba(255,255,255,.6); }
+.me b { display: block; color: var(--white); font-weight: 500; font-size: 13px; }
+.me button { color: var(--orange-l); font-size: 11px; padding: 2px 0; }
+
+.main { flex: 1; min-width: 0; padding: 36px 40px calc(var(--player-h) + 40px); }
+.page { max-width: 960px; margin: 0 auto; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
+.page-head .en { font-family: var(--en); font-size: 12px; letter-spacing: .22em; color: var(--orange); text-transform: uppercase; display: block; margin-bottom: 4px; }
+.page-head h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; letter-spacing: .03em; line-height: 1.3; text-wrap: balance; }
+.page-head p { color: var(--muted); font-size: 13px; margin-top: 4px; }
+h3.section { font-family: var(--serif); font-size: 17px; font-weight: 600; margin: 32px 0 12px; display: flex; align-items: center; gap: 10px; }
+h3.section::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+h3.section .more { font-family: var(--sans); font-size: 12px; color: var(--orange); font-weight: 500; }
+
+/* ── 部品 ───────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  background: var(--navy); color: var(--white); border: 1px solid var(--navy);
+  transition: background .15s, transform .1s; white-space: nowrap;
+}
+.btn:hover { background: var(--navy-mid); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--orange); border-color: var(--orange); }
+.btn.primary:hover { background: #D4590A; }
+.btn.ghost { background: transparent; color: var(--navy); border-color: var(--border); }
+.btn.ghost:hover { background: var(--sand); }
+.btn.danger { background: transparent; color: var(--red); border-color: transparent; }
+.btn.danger:hover { background: var(--red-pale); }
+.btn.sm { padding: 5px 10px; font-size: 12px; }
+
+.input, .select, .textarea {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--white); font-size: 13.5px; transition: border-color .15s;
+}
+.input:focus, .select:focus, .textarea:focus { border-color: var(--orange); outline: none; }
+.textarea { min-height: 96px; resize: vertical; line-height: 1.6; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: .04em; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid .full { grid-column: 1 / -1; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 500;
+  background: var(--sand); color: var(--navy); white-space: nowrap; letter-spacing: .02em;
+}
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+.pill.done { background: var(--green-pale); color: var(--green); }
+.pill.partial { background: var(--orange-pale); color: var(--orange); }
+.pill.none { background: var(--sand); color: var(--muted); }
+.pill.draft { background: var(--sand-deep); color: var(--muted); }
+.pill.admin { background: var(--navy); color: var(--white); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--white); font-size: 12.5px; color: var(--navy); display: inline-flex; align-items: center; gap: 7px;
+  transition: all .15s;
+}
+.chip:hover { border-color: var(--navy); }
+.chip.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+.chip .n { font-size: 11px; opacity: .6; font-variant-numeric: tabular-nums; }
+
+.card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+.empty { padding: 44px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+.empty b { display: block; font-family: var(--serif); color: var(--navy); font-size: 15px; margin-bottom: 4px; }
+
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.toolbar .input { max-width: 280px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.progress { height: 5px; background: var(--sand-deep); border-radius: 3px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--orange); border-radius: 3px; transition: width .3s; }
+.progress.done > i { background: var(--green); }
+
+/* ── エピソード一覧 ───────────────────────────── */
+.ep-list { display: flex; flex-direction: column; gap: 10px; }
+.ep-row {
+  display: grid; grid-template-columns: 48px 1fr auto; gap: 16px; align-items: center;
+  padding: 14px 18px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+  transition: border-color .15s, box-shadow .15s; cursor: pointer;
+}
+.ep-row:hover { border-color: var(--orange-l); box-shadow: var(--shadow); }
+.ep-row.playing { border-color: var(--orange); }
+.play-btn {
+  width: 48px; height: 48px; border-radius: 50%; background: var(--navy); color: var(--white);
+  display: inline-flex; align-items: center; justify-content: center; flex: none; transition: background .15s, transform .1s;
+}
+.play-btn:hover { background: var(--orange); }
+.play-btn svg { width: 18px; height: 18px; fill: currentColor; }
+.play-btn.lg { width: 72px; height: 72px; background: var(--orange); }
+.play-btn.lg svg { width: 28px; height: 28px; }
+.play-btn.lg:hover { background: #D4590A; }
+.ep-row .body { min-width: 0; }
+.ep-row .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.ep-row .title { font-family: var(--serif); font-size: 15.5px; font-weight: 600; line-height: 1.4; }
+.ep-row .desc { font-size: 12.5px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep-row .progress { margin-top: 8px; max-width: 320px; }
+.ep-row .side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 11.5px; color: var(--muted); }
+
+.ep-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.ep-card { padding: 18px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; display: flex; flex-direction: column; gap: 10px; transition: border-color .15s, box-shadow .15s; }
+.ep-card:hover { border-color: var(--orange-l); box-shadow: var(--shadow); }
+.ep-card .title { font-family: var(--serif); font-size: 15px; font-weight: 600; line-height: 1.45; }
+.ep-card .meta { display: flex; gap: 8px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.ep-card .foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+
+/* ── ホーム ───────────────────────────── */
+.hero {
+  background: var(--navy); color: var(--white); border-radius: 14px; padding: 30px 32px;
+  display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; position: relative; overflow: hidden;
+}
+.hero::before { content: ''; position: absolute; right: -60px; top: -80px; width: 260px; height: 260px; border-radius: 50%; border: 1px solid rgba(232,99,10,.25); }
+.hero .en { font-family: var(--en); font-size: 12px; letter-spacing: .24em; color: var(--orange); text-transform: uppercase; }
+.hero h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 6px 0 4px; line-height: 1.4; }
+.hero p { color: rgba(255,255,255,.7); font-size: 13px; }
+.hero .stats { display: flex; gap: 22px; }
+.hero .stat { text-align: right; }
+.hero .stat b { display: block; font-family: var(--en); font-size: 34px; line-height: 1; font-weight: 600; }
+.hero .stat span { font-size: 11px; color: rgba(255,255,255,.6); }
+
+/* ── エピソード詳細 ───────────────────────────── */
+.ep-head { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; padding: 26px 28px; background: var(--white); border: 1px solid var(--border); border-radius: 14px; }
+.ep-head .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.ep-head h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; line-height: 1.4; text-wrap: balance; }
+.ep-head .sub { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.ep-desc { padding: 22px 28px; white-space: pre-wrap; line-height: 1.85; font-size: 14px; max-width: 70ch; }
+.ep-desc:empty { display: none; }
+
+.comments { display: flex; flex-direction: column; gap: 12px; }
+.comment { display: grid; grid-template-columns: 38px 1fr; gap: 12px; padding: 14px 16px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+.avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--navy); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 15px; font-weight: 600; flex: none; }
+.avatar.o { background: var(--orange); }
+.comment .who { display: flex; align-items: baseline; gap: 8px; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.comment .who b { color: var(--navy); font-weight: 600; font-size: 13px; }
+.comment .who .del { margin-left: auto; color: var(--muted); font-size: 11px; }
+.comment .who .del:hover { color: var(--red); }
+.comment .text { white-space: pre-wrap; line-height: 1.7; font-size: 13.5px; }
+.comment-form { display: grid; grid-template-columns: 38px 1fr; gap: 12px; padding: 16px; background: var(--sand); border-radius: var(--radius); }
+.comment-form .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+
+/* ── プレイヤーバー ───────────────────────────── */
+.player {
+  position: fixed; left: 0; right: 0; bottom: 0; height: var(--player-h); z-index: 50;
+  background: var(--navy); color: var(--white); border-top: 1px solid rgba(255,255,255,.08);
+  display: grid; grid-template-columns: minmax(180px, 1fr) minmax(280px, 2fr) minmax(140px, 1fr); align-items: center; gap: 20px;
+  padding: 0 24px; transform: translateY(100%); transition: transform .3s ease;
+}
+.player.on { transform: none; }
+.player .now { min-width: 0; }
+.player .now .cat { font-size: 10.5px; color: var(--orange-l); letter-spacing: .06em; }
+.player .now .t { font-family: var(--serif); font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player .ctl { display: flex; flex-direction: column; gap: 6px; }
+.player .btns { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.player .btns button { color: var(--white); display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; transition: background .15s; }
+.player .btns button:hover { background: rgba(255,255,255,.1); }
+.player .btns .skip { width: 36px; height: 36px; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; }
+.player .btns .pp { width: 42px; height: 42px; background: var(--orange); }
+.player .btns .pp:hover { background: var(--orange-l); }
+.player .btns .pp svg { width: 16px; height: 16px; fill: currentColor; }
+.player .seek { display: flex; align-items: center; gap: 10px; font-size: 11px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.7); }
+.player input[type=range] { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: rgba(255,255,255,.2); border-radius: 2px; }
+.player input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--orange); cursor: pointer; }
+.player input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--orange); cursor: pointer; }
+.player .right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.player .speed { padding: 5px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,.2); color: var(--white); font-size: 12px; font-variant-numeric: tabular-nums; }
+.player .speed:hover { border-color: var(--orange); }
+.player .close { color: rgba(255,255,255,.5); font-size: 18px; width: 30px; height: 30px; }
+
+/* ── 管理 ───────────────────────────── */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+.tab { padding: 10px 16px; font-size: 13.5px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s; }
+.tab:hover { color: var(--navy); }
+.tab.active { color: var(--navy); border-bottom-color: var(--orange); font-weight: 500; }
+
+.table-wrap { overflow-x: auto; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: .08em; padding: 11px 14px; border-bottom: 1px solid var(--border); background: var(--sand); white-space: nowrap; }
+td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--orange-pale); }
+td .progress { width: 120px; }
+td.actions { white-space: nowrap; text-align: right; }
+
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 22px; }
+.tile { padding: 16px 18px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+.tile .k { font-size: 11px; color: var(--muted); letter-spacing: .06em; }
+.tile .v { font-family: var(--en); font-size: 30px; font-weight: 600; line-height: 1.1; margin-top: 4px; }
+.tile .v small { font-family: var(--sans); font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+
+.upload-box { border: 2px dashed var(--border); border-radius: var(--radius); padding: 22px; text-align: center; color: var(--muted); font-size: 13px; background: var(--white); transition: border-color .15s; cursor: pointer; }
+.upload-box:hover, .upload-box.drag { border-color: var(--orange); }
+.upload-box b { display: block; color: var(--navy); font-weight: 600; margin-bottom: 2px; }
+.upload-box input { display: none; }
+.upload-bar { height: 8px; background: var(--sand-deep); border-radius: 4px; overflow: hidden; margin-top: 12px; }
+.upload-bar > i { display: block; height: 100%; background: var(--orange); width: 0; transition: width .2s; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(28,28,58,.5); z-index: 80; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal { background: var(--cream); border-radius: 14px; width: min(640px, 100%); max-height: 90vh; overflow-y: auto; padding: 26px 28px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.modal h3 { font-family: var(--serif); font-size: 18px; font-weight: 600; margin-bottom: 18px; }
+.modal .foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(var(--player-h) + 20px); transform: translateX(-50%); background: var(--navy); color: var(--white); padding: 10px 18px; border-radius: 8px; font-size: 13px; z-index: 90; box-shadow: var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; }
+.toast.on { opacity: 1; }
+.toast.err { background: var(--red); }
+
+.login { position: fixed; inset: 0; background: var(--navy); color: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; z-index: 100; }
+.login .en { font-family: var(--en); font-size: 13px; letter-spacing: .22em; color: var(--orange); text-transform: uppercase; }
+.login h1 { font-family: var(--serif); font-size: 24px; margin: 12px 0 8px; }
+.login p { color: rgba(255,255,255,.7); font-size: 13px; max-width: 42ch; }
+
+/* ── モバイル ───────────────────────────── */
+@media (max-width: 860px) {
+  .shell { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: static; padding: 16px 16px 8px; }
+  .brand { padding-bottom: 12px; margin-bottom: 8px; }
+  .brand h1 { font-size: 16px; }
+  .nav { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 6px; }
+  .nav-label { display: none; }
+  .nav-item { white-space: nowrap; width: auto; padding: 7px 12px; }
+  .nav-item .cnt { display: none; }
+  .me { padding: 8px 4px 0; font-size: 11px; }
+  .me > span, .me > br { display: none; }
+  .me b { display: inline; margin-right: 8px; }
+  .player .now .cat { flex: none; white-space: nowrap; }
+  .main { padding: 22px 16px calc(var(--player-h) + 30px); }
+  .page-head h2 { font-size: 22px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .hero { grid-template-columns: 1fr; padding: 22px; }
+  .hero .stats { justify-content: flex-start; }
+  .hero .stat { text-align: left; }
+  .ep-row { grid-template-columns: 44px 1fr; }
+  .ep-row .side { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .ep-head { grid-template-columns: 1fr; }
+  .player { grid-template-columns: 1fr; gap: 4px; height: auto; padding: 10px 14px 12px; }
+  .player .now { display: flex; gap: 8px; align-items: baseline; }
+  .player .right { display: none; }
+  :root { --player-h: 110px; }
+}
+
+</style>
+</head>
+<body>
+<!-- デモ版: Cloudflare なしで画面を確認するためのページ。データはこのブラウザの localStorage にだけ保存されます -->
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="en">Voice Library · Demo</span>
+      <h1>社内<span>音声</span>ライブラリ</h1>
+    </div>
+    <nav class="nav" id="nav" aria-label="メニュー"></nav>
+    <div class="me" id="me"></div>
+  </aside>
+  <main class="main" id="main">
+    <div class="page"><div class="card empty">読み込み中…</div></div>
+  </main>
+</div>
+
+<div class="player" id="player" aria-label="再生中">
+  <div class="now">
+    <div class="cat" id="p-cat"></div>
+    <div class="t" id="p-title" role="button" tabindex="0" title="エピソードを開く"></div>
+  </div>
+  <div class="ctl">
+    <div class="btns">
+      <button class="skip" id="p-back" aria-label="15秒戻る">−15</button>
+      <button class="pp" id="p-play" aria-label="再生 / 一時停止"></button>
+      <button class="skip" id="p-fwd" aria-label="15秒進む">+15</button>
+    </div>
+    <div class="seek">
+      <span id="p-cur">0:00</span>
+      <input type="range" id="p-seek" min="0" max="1000" value="0" aria-label="再生位置">
+      <span id="p-dur">0:00</span>
+    </div>
+  </div>
+  <div class="right">
+    <button class="speed" id="p-speed" aria-label="再生速度">1×</button>
+    <button class="close" id="p-close" aria-label="プレイヤーを閉じる">×</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<div class="login" id="login" hidden>
+  <span class="en">Voice Library</span>
+  <h1>ログインが必要です</h1>
+  <p>デモ版ではこの画面は表示されません。</p>
+</div>
+
+<script>
+/* デモ用モック API。
+ * Cloudflare なしで画面を確認するためのもの。データはブラウザの localStorage に保存され、
+ * 音声は Web Audio で合成した短い音（約 30 秒）で代用する。本番では読み込まない。 */
+(() => {
+  'use strict';
+  const KEY = 'audio_demo_v2';
+  const now = () => new Date().toISOString();
+  const ago = (days, hours = 0) => new Date(Date.now() - days * 86400000 - hours * 3600000).toISOString();
+  const DEMO_DURATION = 32;
+
+  function seed() {
+    const members = [
+      { id: 1, email: 'fujiwara@example.co.jp', name: '藤原', role: 'admin', created_at: ago(60), last_seen_at: ago(0, 1) },
+      { id: 2, email: 'yonai@example.co.jp', name: '米内', role: 'member', created_at: ago(58), last_seen_at: ago(0, 3) },
+      { id: 3, email: 'tanji@example.co.jp', name: '丹司', role: 'member', created_at: ago(58), last_seen_at: ago(1) },
+      { id: 4, email: 'kurosaki@example.co.jp', name: '黒崎', role: 'member', created_at: ago(40), last_seen_at: ago(2) },
+      { id: 5, email: 'sato@example.co.jp', name: '佐藤', role: 'member', created_at: ago(20), last_seen_at: ago(5) },
+      { id: 6, email: 'ikezawa@example.co.jp', name: '池沢', role: 'member', created_at: ago(10), last_seen_at: ago(9) },
+    ];
+    const categories = [
+      { id: 1, name: '全体朝礼', color: '#E8630A', sort_order: 1, created_at: ago(60) },
+      { id: 2, name: '社長メッセージ', color: '#1C1C3A', sort_order: 2, created_at: ago(60) },
+      { id: 3, name: '営業', color: '#2F7D6D', sort_order: 3, created_at: ago(60) },
+      { id: 4, name: '研修', color: '#5B4B8A', sort_order: 4, created_at: ago(60) },
+      { id: 5, name: 'その他', color: '#8A8078', sort_order: 9, created_at: ago(60) },
+    ];
+    const ep = (id, title, category_id, description, days, status = 'published') => ({
+      id, title, description, category_id, audio_key: `demo/${id}`, audio_content_type: 'audio/wav', audio_size: 1400000,
+      duration_sec: DEMO_DURATION, status, published_at: status === 'published' ? ago(days) : null, created_by: 1, created_at: ago(days), updated_at: ago(days),
+    });
+    const episodes = [
+      ep(1, '9月 全体朝礼：下期の重点テーマ「仕組み化で属人化をなくす」', 1, '下期に向けて、各部署で「人が変わっても回る仕組み」を1つずつ作る取り組みを始めます。朝礼で話した内容の録音です。\n\n・なぜ今、仕組み化なのか\n・各部署に期待すること\n・10月の中間共有会について', 1),
+      ep(2, '社長メッセージ：お客様の「困った」に最初に気づく人であれ', 2, '先週のお客様訪問で感じたことを話しています。現場の一言が売上より大事、という話。', 4),
+      ep(3, '営業共有：LINE公式アカウント提案の型（ヒアリングから見積までの流れ）', 3, 'ヒアリングメモから提案書・見積を作るまでの標準的な流れを説明しています。新しく入ったメンバーは最初に聴いてください。\n\n関連資料: 提案書テンプレート（社内共有フォルダ）', 8),
+      ep(4, '研修：議事録DBの使い方（Notta → Notion 同期の基本）', 4, '議事録が自動で Notion に入る仕組みの概要と、手元で気をつけることを解説。', 12),
+      ep(5, '8月 全体朝礼：上期ふりかえりと感謝', 1, '上期の数字と、特に頑張ってくれたプロジェクトについて。', 31),
+      ep(6, '営業共有：失注案件からの学び（3件）', 3, '最近の失注3件を振り返り、次に活かすポイントを整理しました。責めるためではなく、型をアップデートするためのふりかえりです。', 18),
+      ep(7, '雑談回：AIを使いはじめて変わった1日の過ごし方', 5, '肩の力を抜いて聴いてください。朝のルーティンにAIを組み込んだら、何が変わったか。', 25),
+      ep(8, '10月 全体朝礼（収録済み・公開前）', 1, '10月の朝礼を事前収録しました。10/1 に公開予定。', 0, 'draft'),
+    ];
+    const play = (episode_id, member_id, ratio, count, days) => ({
+      id: episode_id * 100 + member_id, episode_id, member_id,
+      position_sec: Math.round(DEMO_DURATION * ratio), max_position_sec: Math.round(DEMO_DURATION * ratio),
+      completed: ratio >= 0.9 ? 1 : 0, play_count: count, first_played_at: ago(days, 2), last_played_at: ago(days),
+    });
+    const plays = [
+      play(1, 1, 1, 1, 0), play(1, 2, 1, 2, 0), play(1, 3, 0.45, 1, 0), play(1, 4, 1, 1, 1),
+      play(2, 1, 1, 1, 3), play(2, 2, 1, 1, 3), play(2, 3, 1, 1, 2), play(2, 4, 0.3, 1, 3), play(2, 5, 1, 1, 2),
+      play(3, 1, 1, 1, 7), play(3, 2, 1, 3, 6), play(3, 5, 0.62, 2, 5), play(3, 6, 0.15, 1, 4),
+      play(4, 2, 1, 1, 11), play(4, 3, 1, 1, 10), play(4, 4, 1, 1, 10), play(4, 5, 1, 1, 9), play(4, 6, 1, 2, 8),
+      play(5, 1, 1, 1, 30), play(5, 2, 1, 1, 30), play(5, 3, 1, 1, 29), play(5, 4, 1, 1, 29), play(5, 5, 1, 1, 28),
+      play(6, 2, 1, 1, 17), play(6, 3, 0.8, 1, 16), play(6, 4, 1, 1, 15),
+      play(7, 2, 1, 1, 24), play(7, 6, 0.5, 1, 20),
+    ];
+    const comments = [
+      { id: 1, episode_id: 1, member_id: 2, body: '「人が変わっても回る仕組み」、まず自分の引き継ぎ資料から見直します。10月の共有会までに1つ作ります。', created_at: ago(0, 20), deleted_at: null },
+      { id: 2, episode_id: 1, member_id: 4, body: '質問です。仕組み化の対象は業務フローだけですか？ お客様対応のトーク集なども含めてよいでしょうか。', created_at: ago(0, 18), deleted_at: null },
+      { id: 3, episode_id: 1, member_id: 1, body: 'トーク集も大歓迎です。むしろ属人化しやすいところから優先で。', created_at: ago(0, 16), deleted_at: null },
+      { id: 4, episode_id: 2, member_id: 5, body: '訪問先で「実は困っていて」と言われた話、自分も先週ありました。次回の営業共有で話します。', created_at: ago(2), deleted_at: null },
+      { id: 5, episode_id: 3, member_id: 6, body: '入社したばかりなので助かります。見積の項目についてもう少し詳しい回があると嬉しいです。', created_at: ago(4), deleted_at: null },
+      { id: 6, episode_id: 6, member_id: 3, body: '2件目の失注、価格ではなく「意思決定者に会えていなかった」が本質だと思いました。', created_at: ago(15), deleted_at: null },
+    ];
+    return { members, categories, episodes, plays, comments, seq: 1000, currentMemberId: 1 };
+  }
+
+  let db;
+  try { db = JSON.parse(localStorage.getItem(KEY)); } catch (e) { db = null; }
+  if (!db || !db.episodes) db = seed();
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch (e) { /* noop */ } };
+  const nextId = () => ++db.seq;
+  const me = () => db.members.find((m) => m.id === db.currentMemberId) || db.members[0];
+  const isAdmin = () => me().role === 'admin';
+
+  const respond = (data, status = 200) => Promise.resolve({ ok: status < 400, status, json: async () => data });
+  const err = (msg, status) => respond({ error: msg }, status);
+  const parse = (init) => { try { return init && init.body ? JSON.parse(init.body) : {}; } catch (e) { return {}; } };
+
+  function decorate(e, memberId) {
+    const cat = db.categories.find((c) => c.id === e.category_id);
+    const p = db.plays.find((x) => x.episode_id === e.id && x.member_id === memberId);
+    const creator = db.members.find((m) => m.id === e.created_by);
+    return {
+      id: e.id, title: e.title, description: e.description, category_id: e.category_id, status: e.status, published_at: e.published_at,
+      created_at: e.created_at, updated_at: e.updated_at, duration_sec: e.duration_sec, audio_size: e.audio_size, audio_content_type: e.audio_content_type,
+      has_audio: e.audio_key ? 1 : 0, category_name: cat ? cat.name : null, category_color: cat ? cat.color : null, created_by_name: creator ? creator.name : null,
+      my_position_sec: p ? p.position_sec : null, my_max_position_sec: p ? p.max_position_sec : null, my_completed: p ? p.completed : null, my_last_played_at: p ? p.last_played_at : null,
+      listener_count: db.plays.filter((x) => x.episode_id === e.id).length,
+      completed_count: db.plays.filter((x) => x.episode_id === e.id && x.completed).length,
+      comment_count: db.comments.filter((x) => x.episode_id === e.id && !x.deleted_at).length,
+    };
+  }
+  const sortEps = (list) => list.slice().sort((a, b) => (b.published_at || b.created_at).localeCompare(a.published_at || a.created_at) || b.id - a.id);
+
+  window.demoFetch = function demoFetch(path, init = {}) {
+    const method = (init.method || 'GET').toUpperCase();
+    const [p, qs] = path.split('?');
+    const q = Object.fromEntries(new URLSearchParams(qs || ''));
+    const seg = p.replace(/^\/api\//, '').split('/');
+    const body = parse(init);
+    const user = me();
+    const admin = isAdmin();
+    const m = (pattern) => { const r = pattern.exec(p); return r ? r.slice(1).map(Number) : null; };
+    let a;
+
+    if (p === '/api/me' && method === 'GET') return respond({ member: { id: user.id, email: user.email, name: user.name, role: user.role }, isAdmin: admin });
+    if (p === '/api/me' && method === 'PUT') { const name = (body.name || '').trim().slice(0, 40); if (!name) return err('表示名を入力してください', 400); user.name = name; save(); return respond({ ok: true, name }); }
+
+    if (p === '/api/categories') return respond({ categories: db.categories.slice().sort((x, y) => x.sort_order - y.sort_order || x.id - y.id).map((c) => ({ ...c, episode_count: db.episodes.filter((e) => e.category_id === c.id && e.status === 'published').length })) });
+
+    if (seg[0] === 'admin' && !admin) return err('管理者のみ操作できます', 403);
+
+    if (p === '/api/admin/categories' && method === 'POST') {
+      const name = (body.name || '').trim(); if (!name) return err('カテゴリー名を入力してください', 400);
+      if (db.categories.some((c) => c.name === name)) return err('同じ名前のカテゴリーがあります', 409);
+      const id = nextId(); db.categories.push({ id, name, color: body.color || '#E8630A', sort_order: Number(body.sort_order) || 0, created_at: now() }); save(); return respond({ ok: true, id });
+    }
+    if ((a = m(/^\/api\/admin\/categories\/(\d+)$/))) {
+      const c = db.categories.find((x) => x.id === a[0]); if (!c) return err('見つかりません', 404);
+      if (method === 'PUT') { c.name = (body.name || c.name).trim(); c.color = body.color || c.color; c.sort_order = Number(body.sort_order) || 0; save(); return respond({ ok: true }); }
+      if (method === 'DELETE') { db.episodes.forEach((e) => { if (e.category_id === c.id) e.category_id = null; }); db.categories = db.categories.filter((x) => x.id !== c.id); save(); return respond({ ok: true }); }
+    }
+
+    if (p === '/api/episodes' && method === 'GET') {
+      let list = db.episodes.filter((e) => e.status === 'published' || (admin && q.include_drafts === '1'));
+      if (q.category === 'none') list = list.filter((e) => !e.category_id); else if (q.category) list = list.filter((e) => e.category_id === Number(q.category));
+      if (q.q) list = list.filter((e) => (e.title + e.description).includes(q.q));
+      return respond({ episodes: sortEps(list).map((e) => decorate(e, user.id)) });
+    }
+    if ((a = m(/^\/api\/episodes\/(\d+)$/)) && method === 'GET') {
+      const e = db.episodes.find((x) => x.id === a[0]); if (!e || (e.status !== 'published' && !admin)) return err('エピソードが見つかりません', 404);
+      const comments = db.comments.filter((c) => c.episode_id === e.id && !c.deleted_at).map((c) => ({ id: c.id, body: c.body, created_at: c.created_at, member_id: c.member_id, member_name: (db.members.find((x) => x.id === c.member_id) || {}).name || '不明' }));
+      return respond({ episode: decorate(e, user.id), comments });
+    }
+    if ((a = m(/^\/api\/episodes\/(\d+)\/progress$/)) && method === 'POST') {
+      const e = db.episodes.find((x) => x.id === a[0]); if (!e) return err('見つかりません', 404);
+      const position = Number(body.position) || 0, duration = Number(body.duration) || e.duration_sec || 0;
+      const completed = duration > 0 && position >= duration * 0.9 ? 1 : 0;
+      let pl = db.plays.find((x) => x.episode_id === e.id && x.member_id === user.id);
+      if (!pl) { pl = { id: nextId(), episode_id: e.id, member_id: user.id, position_sec: 0, max_position_sec: 0, completed: 0, play_count: 0, first_played_at: now(), last_played_at: now() }; db.plays.push(pl); }
+      pl.position_sec = position; pl.max_position_sec = Math.max(pl.max_position_sec, position); pl.completed = Math.max(pl.completed, completed); pl.play_count += body.started ? 1 : 0; pl.last_played_at = now();
+      save(); return respond({ ok: true, completed: completed === 1 });
+    }
+    if ((a = m(/^\/api\/episodes\/(\d+)\/comments$/)) && method === 'POST') {
+      const text = (body.body || '').trim().slice(0, 2000); if (!text) return err('コメントを入力してください', 400);
+      const c = { id: nextId(), episode_id: a[0], member_id: user.id, body: text, created_at: now(), deleted_at: null }; db.comments.push(c); save();
+      return respond({ ok: true, comment: { id: c.id, body: c.body, created_at: c.created_at, member_id: user.id, member_name: user.name } });
+    }
+    if ((a = m(/^\/api\/comments\/(\d+)$/)) && method === 'DELETE') {
+      const c = db.comments.find((x) => x.id === a[0] && !x.deleted_at); if (!c) return err('コメントが見つかりません', 404);
+      if (c.member_id !== user.id && !admin) return err('自分のコメントのみ削除できます', 403);
+      c.deleted_at = now(); save(); return respond({ ok: true });
+    }
+
+    if (p === '/api/admin/episodes' && method === 'POST') {
+      const title = (body.title || '').trim(); if (!title) return err('タイトルを入力してください', 400);
+      const id = nextId(); db.episodes.push({ id, title, description: (body.description || '').trim(), category_id: body.category_id || null, audio_key: null, audio_content_type: null, audio_size: null, duration_sec: body.duration_sec || null, status: 'draft', published_at: null, created_by: user.id, created_at: now(), updated_at: now() });
+      save(); return respond({ ok: true, id });
+    }
+    if ((a = m(/^\/api\/admin\/episodes\/(\d+)$/))) {
+      const e = db.episodes.find((x) => x.id === a[0]); if (!e) return err('エピソードが見つかりません', 404);
+      if (method === 'PUT') {
+        if (body.status === 'published' && !e.audio_key) return err('音声ファイルをアップロードしてから公開してください', 400);
+        e.title = (body.title || e.title).trim(); e.description = (body.description ?? e.description).trim(); e.category_id = body.category_id || null; if (body.duration_sec) e.duration_sec = body.duration_sec;
+        if (body.status === 'published' || body.status === 'draft') { e.status = body.status; if (e.status === 'published' && !e.published_at) e.published_at = now(); }
+        e.updated_at = now(); save(); return respond({ ok: true, status: e.status });
+      }
+      if (method === 'DELETE') { db.episodes = db.episodes.filter((x) => x.id !== e.id); db.plays = db.plays.filter((x) => x.episode_id !== e.id); db.comments = db.comments.filter((x) => x.episode_id !== e.id); save(); return respond({ ok: true }); }
+    }
+    if (p === '/api/admin/stats') {
+      return respond({ total_members: db.members.length, episodes: sortEps(db.episodes).map((e) => { const d = decorate(e, user.id); return { id: e.id, title: e.title, status: e.status, published_at: e.published_at, duration_sec: e.duration_sec, category_name: d.category_name, category_color: d.category_color, listener_count: d.listener_count, completed_count: d.completed_count, comment_count: d.comment_count }; }) });
+    }
+    if ((a = m(/^\/api\/admin\/episodes\/(\d+)\/listeners$/))) {
+      const e = db.episodes.find((x) => x.id === a[0]); if (!e) return err('見つかりません', 404);
+      const listeners = db.members.map((mb) => { const pl = db.plays.find((x) => x.episode_id === e.id && x.member_id === mb.id); return { member_id: mb.id, name: mb.name, email: mb.email, role: mb.role, position_sec: pl ? pl.position_sec : null, max_position_sec: pl ? pl.max_position_sec : null, completed: pl ? pl.completed : null, play_count: pl ? pl.play_count : null, first_played_at: pl ? pl.first_played_at : null, last_played_at: pl ? pl.last_played_at : null }; })
+        .sort((x, y) => (x.last_played_at ? 0 : 1) - (y.last_played_at ? 0 : 1) || (y.completed || 0) - (x.completed || 0) || String(y.last_played_at).localeCompare(String(x.last_played_at)));
+      return respond({ episode: { id: e.id, title: e.title, duration_sec: e.duration_sec }, listeners });
+    }
+    if (p === '/api/admin/members' && method === 'GET') {
+      return respond({ published_count: db.episodes.filter((e) => e.status === 'published').length, members: db.members.map((mb) => { const pls = db.plays.filter((x) => x.member_id === mb.id); return { ...mb, played_count: pls.length, completed_count: pls.filter((x) => x.completed).length, comment_count: db.comments.filter((x) => x.member_id === mb.id && !x.deleted_at).length, last_played_at: pls.map((x) => x.last_played_at).sort().pop() || null }; }) });
+    }
+    if ((a = m(/^\/api\/admin\/members\/(\d+)$/)) && method === 'PUT') {
+      const mb = db.members.find((x) => x.id === a[0]); if (!mb) return err('見つかりません', 404);
+      if (body.role === 'member' && mb.id === user.id) return err('自分自身の管理者権限は外せません', 400);
+      if (body.role) mb.role = body.role; if (body.name) mb.name = body.name.trim(); save(); return respond({ ok: true });
+    }
+    return err('Not found', 404);
+  };
+
+  /* アップロードのふり（実ファイルは保存せず、合成音声で代用） */
+  window.demoUpload = function demoUpload(id, file, duration, onProgress) {
+    return new Promise((resolve) => {
+      let p = 0;
+      const t = setInterval(() => { p = Math.min(1, p + 0.12); onProgress(p); if (p >= 1) { clearInterval(t); const e = db.episodes.find((x) => x.id === id); if (e) { e.audio_key = `demo/${id}`; e.audio_content_type = 'audio/wav'; e.audio_size = file.size; e.duration_sec = DEMO_DURATION; } save(); resolve({ ok: true }); } }, 120);
+    });
+  };
+
+  /* 合成音声（エピソードごとに音程を変えた、静かなチャイム風の音） */
+  const urlCache = new Map();
+  window.demoAudioUrl = function demoAudioUrl(ep) {
+    if (urlCache.has(ep.id)) return urlCache.get(ep.id);
+    const rate = 22050, sec = DEMO_DURATION, n = rate * sec;
+    const buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const str = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); str(8, 'WAVE'); str(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); str(36, 'data'); v.setUint32(40, n * 2, true);
+    const base = 196 * Math.pow(2, ((ep.id * 5) % 12) / 12);
+    const scale = [0, 2, 4, 7, 9, 12, 14];
+    let seedv = ep.id * 7919;
+    const rnd = () => { seedv = (seedv * 1103515245 + 12345) & 0x7fffffff; return seedv / 0x7fffffff; };
+    const notes = Array.from({ length: sec * 2 }, () => base * Math.pow(2, scale[Math.floor(rnd() * scale.length)] / 12));
+    for (let i = 0; i < n; i++) {
+      const t = i / rate, idx = Math.floor(t * 2), local = (t * 2) % 1;
+      const env = Math.exp(-local * 3) * (1 - Math.exp(-local * 60));
+      const f = notes[idx];
+      const s = (Math.sin(2 * Math.PI * f * t) * 0.6 + Math.sin(2 * Math.PI * f * 2 * t) * 0.25 + Math.sin(2 * Math.PI * f * 3 * t) * 0.1) * env * 0.35;
+      const fade = Math.min(1, t / 0.5, (sec - t) / 1.5);
+      v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, s * fade)) * 32767, true);
+    }
+    const url = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    urlCache.set(ep.id, url);
+    return url;
+  };
+
+  /* デモ用: ユーザー切り替えとリセット */
+  window.demoSwitchUser = function (id) { db.currentMemberId = Number(id); save(); location.hash = '#/'; window.audioApp.reload(); };
+  window.demoReset = function () { localStorage.removeItem(KEY); db = seed(); location.hash = '#/'; window.audioApp.reload(); };
+  window.demoMembers = () => db.members.map((m) => ({ id: m.id, name: m.name, role: m.role }));
+  window.__DEMO__ = true;
+})();
+
+</script>
+<script>
+/* 社内音声配信 — フロントエンド（ビルド不要の素の JavaScript） */
+(() => {
+  'use strict';
+
+  /* ───────── ユーティリティ ───────── */
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+  const fmtTime = (sec) => {
+    sec = Math.max(0, Math.floor(Number(sec) || 0));
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    return h ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+  };
+  const fmtDur = (sec) => {
+    sec = Number(sec) || 0;
+    if (!sec) return '';
+    const m = Math.round(sec / 60);
+    return m < 1 ? `${Math.round(sec)}秒` : m < 60 ? `${m}分` : `${Math.floor(m / 60)}時間${m % 60}分`;
+  };
+  const fmtDate = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const fmtDateTime = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return '';
+    return `${fmtDate(iso)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  const relDate = (iso) => {
+    if (!iso) return '';
+    const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (diff < 60) return 'たった今';
+    if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
+    if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}日前`;
+    return fmtDate(iso);
+  };
+  const pct = (ep) => {
+    const dur = Number(ep.duration_sec) || 0, pos = Number(ep.my_max_position_sec) || 0;
+    if (ep.my_completed) return 100;
+    return dur > 0 ? Math.min(99, Math.round((pos / dur) * 100)) : 0;
+  };
+  const statusPill = (ep) => {
+    if (ep.my_completed) return '<span class="pill done">聴了</span>';
+    if (ep.my_last_played_at) return `<span class="pill partial">${pct(ep)}% まで</span>`;
+    return '<span class="pill none">未再生</span>';
+  };
+  const initial = (name) => esc((name || '?').trim().charAt(0));
+  const catPill = (ep) => ep.category_name ? `<span class="pill"><span class="dot" style="background:${esc(ep.category_color || '#E8630A')}"></span>${esc(ep.category_name)}</span>` : '<span class="pill none">未分類</span>';
+
+  let toastTimer;
+  const toast = (msg, err = false) => {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.className = 'toast on' + (err ? ' err' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (el.className = 'toast'), 2600);
+  };
+
+  /* ───────── API ───────── */
+  async function api(path, opts = {}) {
+    const init = { ...opts };
+    if (init.json !== undefined) {
+      init.body = JSON.stringify(init.json);
+      init.headers = { 'Content-Type': 'application/json', ...(init.headers || {}) };
+      delete init.json;
+    }
+    const res = await (window.__DEMO__ ? window.demoFetch(path, init) : fetch(path, init));
+    if (res.status === 401) {
+      $('#login').hidden = false;
+      throw new Error('ログインが必要です');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `エラーが起きました (${res.status})`);
+    return data;
+  }
+
+  /* ───────── 状態 ───────── */
+  const state = { me: null, isAdmin: false, categories: [], episodes: [], route: { name: 'home' } };
+
+  /* ───────── プレイヤー ───────── */
+  const audio = new Audio();
+  audio.preload = 'metadata';
+  const player = {
+    ep: null,
+    speeds: [1, 1.25, 1.5, 2],
+    speedIdx: 0,
+    lastSent: 0,
+    seeking: false,
+    async load(ep, autoplay = true) {
+      if (this.ep && this.ep.id === ep.id) {
+        if (autoplay) this.toggle();
+        return;
+      }
+      if (this.ep) await this.report(false);
+      this.ep = ep;
+      $('#player').classList.add('on');
+      $('#p-cat').textContent = ep.category_name || '未分類';
+      $('#p-title').textContent = ep.title;
+      $('#p-seek').value = 0;
+      $('#p-cur').textContent = '0:00';
+      $('#p-dur').textContent = fmtTime(ep.duration_sec);
+      audio.src = window.__DEMO__ ? window.demoAudioUrl(ep) : `/api/episodes/${ep.id}/audio`;
+      const resume = Number(ep.my_position_sec) || 0;
+      const dur = Number(ep.duration_sec) || 0;
+      const shouldResume = resume > 5 && (!dur || resume < dur * 0.9);
+      audio.playbackRate = this.speeds[this.speedIdx];
+      const onMeta = () => {
+        if (shouldResume) audio.currentTime = resume;
+        audio.removeEventListener('loadedmetadata', onMeta);
+      };
+      audio.addEventListener('loadedmetadata', onMeta);
+      if (autoplay) {
+        try { await audio.play(); } catch (e) { /* 自動再生がブロックされた場合はユーザー操作を待つ */ }
+      }
+      if (shouldResume) toast(`${fmtTime(resume)} から再開します`);
+      this.started = true;
+      this.renderState();
+      renderRoute(false);
+    },
+    toggle() {
+      if (!this.ep) return;
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    },
+    skip(sec) {
+      if (!this.ep) return;
+      audio.currentTime = Math.max(0, Math.min((audio.duration || 0) || Infinity, audio.currentTime + sec));
+    },
+    cycleSpeed() {
+      this.speedIdx = (this.speedIdx + 1) % this.speeds.length;
+      audio.playbackRate = this.speeds[this.speedIdx];
+      $('#p-speed').textContent = `${this.speeds[this.speedIdx]}×`;
+    },
+    async close() {
+      if (!this.ep) return;
+      await this.report(false);
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      this.ep = null;
+      $('#player').classList.remove('on');
+      renderRoute(false);
+    },
+    renderState() {
+      const playing = this.ep && !audio.paused;
+      $('#p-play').innerHTML = playing ? ICON.pause : ICON.play;
+      document.querySelectorAll('[data-play]').forEach((b) => {
+        const isCur = this.ep && Number(b.dataset.play) === this.ep.id;
+        b.innerHTML = isCur && playing ? ICON.pause : ICON.play;
+        const row = b.closest('.ep-row, .ep-card, .ep-head');
+        if (row) row.classList.toggle('playing', !!isCur);
+      });
+    },
+    async report(started, keepalive = false) {
+      if (!this.ep) return;
+      const position = audio.currentTime || 0;
+      const duration = isFinite(audio.duration) ? audio.duration : (Number(this.ep.duration_sec) || 0);
+      const ep = this.ep;
+      try {
+        const r = await api(`/api/episodes/${ep.id}/progress`, { method: 'POST', json: { position, duration, started }, keepalive });
+        // ローカル状態にも反映（一覧の進捗表示用）
+        const patch = (e) => {
+          if (!e || e.id !== ep.id) return;
+          e.my_position_sec = position;
+          e.my_max_position_sec = Math.max(Number(e.my_max_position_sec) || 0, position);
+          e.my_last_played_at = new Date().toISOString();
+          if (!e.duration_sec && duration) e.duration_sec = duration;
+          if (r.completed && !e.my_completed) { e.my_completed = 1; e.listener_count = e.listener_count; }
+        };
+        patch(ep);
+        state.episodes.forEach(patch);
+        if (state.detail && state.detail.episode) patch(state.detail.episode);
+        this.lastSent = Date.now();
+      } catch (e) { /* 通信失敗時は次回に再送 */ }
+    },
+  };
+  audio.addEventListener('play', () => {
+    player.renderState();
+    if (player.started) { player.report(true); player.started = false; }
+  });
+  audio.addEventListener('pause', () => { player.renderState(); player.report(false); });
+  audio.addEventListener('ended', async () => {
+    player.renderState();
+    await player.report(false);
+    toast('最後まで聴きました');
+    renderRoute(false);
+  });
+  audio.addEventListener('timeupdate', () => {
+    if (!player.ep || player.seeking) return;
+    const dur = audio.duration || Number(player.ep.duration_sec) || 0;
+    if (dur) $('#p-seek').value = (audio.currentTime / dur) * 1000;
+    $('#p-cur').textContent = fmtTime(audio.currentTime);
+    if (isFinite(audio.duration)) $('#p-dur').textContent = fmtTime(audio.duration);
+    if (!audio.paused && Date.now() - player.lastSent > 15000) player.report(false);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && player.ep && !audio.paused) player.report(false, true); });
+  window.addEventListener('pagehide', () => { if (player.ep) player.report(false, true); });
+
+  const ICON = {
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>',
+  };
+
+  /* ───────── ルーティング ───────── */
+  function parseRoute() {
+    const hash = location.hash.replace(/^#\/?/, '');
+    const [path, qs] = hash.split('?');
+    const seg = path.split('/').filter(Boolean);
+    const q = Object.fromEntries(new URLSearchParams(qs || ''));
+    if (seg[0] === 'archive') return { name: 'archive', cat: seg[1] || '', q: q.q || '' };
+    if (seg[0] === 'episode' && seg[1]) return { name: 'episode', id: Number(seg[1]) };
+    if (seg[0] === 'admin') return { name: 'admin', tab: seg[1] || 'episodes', id: seg[2] ? Number(seg[2]) : null };
+    return { name: 'home' };
+  }
+  const go = (hash) => { location.hash = hash; };
+
+  async function renderRoute(reload = true) {
+    state.route = parseRoute();
+    const r = state.route;
+    document.querySelectorAll('.nav-item').forEach((n) => {
+      const key = n.dataset.nav;
+      n.classList.toggle('active', key === r.name || (r.name === 'archive' && key === `cat:${r.cat}`) || (r.name === 'archive' && key === 'archive' && !r.cat));
+    });
+    if (r.name === 'admin' && !state.isAdmin) { go('/'); return; }
+    try {
+      if (r.name === 'home') await renderHome(reload);
+      else if (r.name === 'archive') await renderArchive(reload);
+      else if (r.name === 'episode') await renderEpisode(reload);
+      else if (r.name === 'admin') await renderAdmin(reload);
+    } catch (e) {
+      $('#main').innerHTML = `<div class="page"><div class="card empty"><b>読み込めませんでした</b>${esc(e.message)}</div></div>`;
+    }
+    player.renderState();
+    window.scrollTo({ top: reload ? 0 : window.scrollY });
+  }
+
+  async function loadEpisodes(params = {}) {
+    const qs = new URLSearchParams();
+    if (params.category) qs.set('category', params.category);
+    if (params.q) qs.set('q', params.q);
+    if (params.include_drafts) qs.set('include_drafts', '1');
+    const data = await api(`/api/episodes${qs.toString() ? '?' + qs : ''}`);
+    state.episodes = data.episodes;
+    return data.episodes;
+  }
+  async function loadCategories() {
+    state.categories = (await api('/api/categories')).categories;
+    renderNav();
+  }
+
+  /* ───────── ナビ ───────── */
+  function renderNav() {
+    const cats = state.categories.map((c) => `
+      <a class="nav-item" href="#/archive/${c.id}" data-nav="cat:${c.id}">
+        <span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<span class="cnt num">${c.episode_count || 0}</span>
+      </a>`).join('');
+    $('#nav').innerHTML = `
+      <a class="nav-item" href="#/" data-nav="home">${NAV_ICON.home}ホーム</a>
+      <a class="nav-item" href="#/archive" data-nav="archive">${NAV_ICON.archive}アーカイブ<span class="cnt num">${state.categories.reduce((a, c) => a + (c.episode_count || 0), 0)}</span></a>
+      <div class="nav-label">カテゴリー</div>
+      ${cats}
+      ${state.isAdmin ? `<div class="nav-label">管理者</div><a class="nav-item" href="#/admin" data-nav="admin">${NAV_ICON.admin}配信管理・視聴状況</a>` : ''}
+    `;
+    $('#me').innerHTML = state.me ? `<b>${esc(state.me.name)}</b>${state.isAdmin ? '<span class="pill admin" style="margin:4px 0">管理者</span><br>' : ''}<span>${esc(state.me.email)}</span><br><button id="rename">表示名を変更</button>` : '';
+    if (window.__DEMO__ && state.me) {
+      const opts = window.demoMembers().map((m) => `<option value="${m.id}" ${m.id === state.me.id ? 'selected' : ''}>${esc(m.name)}${m.role === 'admin' ? '（管理者）' : ''}</option>`).join('');
+      $('#me').insertAdjacentHTML('beforeend', `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.15)"><div style="font-size:10px;letter-spacing:.14em;color:var(--orange-l);margin-bottom:4px">デモ: ユーザーを切り替え</div><select class="select" id="demo-user" style="padding:5px 8px;font-size:12px;background:var(--navy-mid);color:#fff;border-color:rgba(255,255,255,.2)">${opts}</select><button id="demo-reset" style="margin-top:6px;color:rgba(255,255,255,.5)">デモデータを初期化</button></div>`);
+      $('#demo-user').addEventListener('change', (e) => window.demoSwitchUser(e.target.value));
+      $('#demo-reset').addEventListener('click', () => { if (confirm('デモデータを初期状態に戻しますか？')) window.demoReset(); });
+    }
+  }
+  const NAV_ICON = {
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    archive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h18v13H3zM3 4h18v3H3zM10 11h4"/></svg>',
+    admin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  };
+
+  /* ───────── 画面: ホーム ───────── */
+  async function renderHome(reload) {
+    if (reload || !state.episodes.length) await loadEpisodes();
+    const eps = state.episodes;
+    const inProgress = eps.filter((e) => e.my_last_played_at && !e.my_completed).slice(0, 4);
+    const unheard = eps.filter((e) => !e.my_last_played_at);
+    const latest = eps.slice(0, 6);
+    const done = eps.filter((e) => e.my_completed).length;
+    $('#main').innerHTML = `
+      <div class="page">
+        <div class="hero">
+          <div>
+            <span class="en">Internal Voice Library</span>
+            <h2>${esc(state.me.name)} さん、おかえりなさい</h2>
+            <p>${unheard.length ? `まだ聴いていない配信が ${unheard.length} 件あります。` : 'すべての配信を再生済みです。'}移動中や作業の合間にどうぞ。</p>
+          </div>
+          <div class="stats">
+            <div class="stat"><b class="num">${eps.length}</b><span>配信数</span></div>
+            <div class="stat"><b class="num">${done}</b><span>聴了</span></div>
+            <div class="stat"><b class="num">${unheard.length}</b><span>未再生</span></div>
+          </div>
+        </div>
+        ${inProgress.length ? `<h3 class="section">続きから聴く</h3><div class="ep-list">${inProgress.map(rowHtml).join('')}</div>` : ''}
+        <h3 class="section">新着の配信 <a class="more" href="#/archive">すべて見る</a></h3>
+        ${latest.length ? `<div class="ep-list">${latest.map(rowHtml).join('')}</div>` : `<div class="card empty"><b>まだ配信がありません</b>${state.isAdmin ? '管理画面から最初の配信を登録できます。' : '配信されるとここに表示されます。'}</div>`}
+        <h3 class="section">カテゴリーから探す</h3>
+        <div class="chips">${state.categories.map((c) => `<a class="chip" href="#/archive/${c.id}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<span class="n">${c.episode_count || 0}</span></a>`).join('')}</div>
+      </div>`;
+  }
+
+  function rowHtml(ep) {
+    const p = pct(ep);
+    return `
+      <div class="ep-row" data-open="${ep.id}">
+        <button class="play-btn" data-play="${ep.id}" aria-label="再生">${ICON.play}</button>
+        <div class="body">
+          <div class="meta">${catPill(ep)}<span>${fmtDate(ep.published_at || ep.created_at)}</span>${ep.duration_sec ? `<span>${fmtDur(ep.duration_sec)}</span>` : ''}${ep.status === 'draft' ? '<span class="pill draft">下書き</span>' : ''}</div>
+          <div class="title">${esc(ep.title)}</div>
+          ${ep.description ? `<div class="desc">${esc(ep.description)}</div>` : ''}
+          ${ep.my_last_played_at ? `<div class="progress ${ep.my_completed ? 'done' : ''}"><i style="width:${p}%"></i></div>` : ''}
+        </div>
+        <div class="side">${statusPill(ep)}<span>💬 ${ep.comment_count || 0}</span></div>
+      </div>`;
+  }
+
+  /* ───────── 画面: アーカイブ ───────── */
+  async function renderArchive(reload) {
+    const r = state.route;
+    const eps = await loadEpisodes({ category: r.cat, q: r.q });
+    const cat = state.categories.find((c) => String(c.id) === String(r.cat));
+    $('#main').innerHTML = `
+      <div class="page">
+        <div class="page-head">
+          <div><span class="en">Archive</span><h2>${cat ? esc(cat.name) : 'すべての配信'}</h2><p>${cat ? `${cat.name} の配信 ${eps.length} 件` : `過去の配信 ${eps.length} 件。カテゴリーやキーワードで絞り込めます`}</p></div>
+        </div>
+        <div class="toolbar">
+          <div class="chips">
+            <a class="chip ${!r.cat ? 'active' : ''}" href="#/archive">すべて</a>
+            ${state.categories.map((c) => `<a class="chip ${String(c.id) === String(r.cat) ? 'active' : ''}" href="#/archive/${c.id}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<span class="n">${c.episode_count || 0}</span></a>`).join('')}
+          </div>
+        </div>
+        <div class="toolbar">
+          <input class="input" id="search" type="search" placeholder="タイトル・説明で検索" value="${esc(r.q)}">
+          <select class="select" id="filter" style="max-width:160px">
+            <option value="">すべての状態</option><option value="unheard">未再生</option><option value="partial">途中</option><option value="done">聴了</option>
+          </select>
+        </div>
+        <div class="ep-list" id="list">${eps.length ? eps.map(rowHtml).join('') : '<div class="card empty"><b>該当する配信がありません</b>条件を変えて探してみてください。</div>'}</div>
+      </div>`;
+    $('#search').addEventListener('change', (e) => go(`/archive/${r.cat}?q=${encodeURIComponent(e.target.value.trim())}`));
+    $('#filter').addEventListener('change', (e) => {
+      const f = e.target.value;
+      const filtered = eps.filter((ep) => !f || (f === 'unheard' && !ep.my_last_played_at) || (f === 'partial' && ep.my_last_played_at && !ep.my_completed) || (f === 'done' && ep.my_completed));
+      $('#list').innerHTML = filtered.length ? filtered.map(rowHtml).join('') : '<div class="card empty"><b>該当する配信がありません</b></div>';
+      player.renderState();
+    });
+  }
+
+  /* ───────── 画面: エピソード詳細 ───────── */
+  async function renderEpisode(reload) {
+    const id = state.route.id;
+    if (reload || !state.detail || state.detail.episode.id !== id) state.detail = await api(`/api/episodes/${id}`);
+    const { episode: ep, comments } = state.detail;
+    const isPlaying = player.ep && player.ep.id === ep.id && !audio.paused;
+    $('#main').innerHTML = `
+      <div class="page">
+        <div class="ep-head">
+          <button class="play-btn lg" data-play="${ep.id}" aria-label="再生">${isPlaying ? ICON.pause : ICON.play}</button>
+          <div>
+            <div class="meta">${catPill(ep)}<span>${fmtDate(ep.published_at || ep.created_at)}</span>${ep.duration_sec ? `<span>${fmtDur(ep.duration_sec)}</span>` : ''}${statusPill(ep)}${ep.status === 'draft' ? '<span class="pill draft">下書き（メンバーには非表示）</span>' : ''}</div>
+            <h2>${esc(ep.title)}</h2>
+            <div class="sub">${ep.created_by_name ? `配信: ${esc(ep.created_by_name)} ・ ` : ''}${ep.listener_count || 0} 人が再生${ep.my_last_played_at && !ep.my_completed ? ` ・ ${fmtTime(ep.my_position_sec)} まで再生済み` : ''}</div>
+          </div>
+        </div>
+        <div class="card ep-desc" style="margin-top:14px">${esc(ep.description)}</div>
+        <h3 class="section">コメント <span class="muted small" style="font-family:var(--sans);font-weight:400">${comments.length} 件</span></h3>
+        <div class="comments" id="comments">${comments.length ? comments.map(commentHtml).join('') : '<div class="card empty">最初のコメントを書いてみましょう。感想や質問、気づきなど何でも。</div>'}</div>
+        <form class="comment-form" id="comment-form" style="margin-top:14px">
+          <div class="avatar o">${initial(state.me.name)}</div>
+          <div>
+            <textarea class="textarea" id="comment-body" placeholder="感想・質問・気づきを書く（2000文字まで）" maxlength="2000" required></textarea>
+            <div class="actions"><span class="muted small">${esc(state.me.name)} として投稿</span><button class="btn primary" type="submit">投稿する</button></div>
+          </div>
+        </form>
+      </div>`;
+    $('#comment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = $('#comment-body').value.trim();
+      if (!body) return;
+      const btn = e.target.querySelector('button');
+      btn.disabled = true;
+      try {
+        const r = await api(`/api/episodes/${ep.id}/comments`, { method: 'POST', json: { body } });
+        state.detail.comments.push(r.comment);
+        ep.comment_count = (ep.comment_count || 0) + 1;
+        toast('コメントを投稿しました');
+        renderEpisode(false);
+      } catch (err) { toast(err.message, true); btn.disabled = false; }
+    });
+  }
+  function commentHtml(cm) {
+    const mine = state.me && cm.member_id === state.me.id;
+    return `
+      <div class="comment">
+        <div class="avatar ${mine ? 'o' : ''}">${initial(cm.member_name)}</div>
+        <div>
+          <div class="who"><b>${esc(cm.member_name)}</b><span title="${esc(fmtDateTime(cm.created_at))}">${relDate(cm.created_at)}</span>${mine || state.isAdmin ? `<button class="del" data-del-comment="${cm.id}">削除</button>` : ''}</div>
+          <div class="text">${esc(cm.body)}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ───────── 画面: 管理 ───────── */
+  async function renderAdmin(reload) {
+    const tab = state.route.tab;
+    const tabs = [['episodes', '配信管理'], ['stats', '視聴状況'], ['categories', 'カテゴリー'], ['members', 'メンバー']];
+    $('#main').innerHTML = `
+      <div class="page">
+        <div class="page-head"><div><span class="en">Admin</span><h2>配信管理・視聴状況</h2><p>配信の登録・公開、誰がどこまで聴いたかの確認ができます</p></div>
+          <div style="display:flex;gap:8px">${tab === 'episodes' ? '<button class="btn primary" id="new-ep">＋ 新しい配信</button>' : ''}${tab === 'stats' ? '<a class="btn ghost" id="csv" href="/api/admin/export.csv" download>CSV ダウンロード</a>' : ''}</div>
+        </div>
+        <div class="tabs">${tabs.map(([k, l]) => `<a class="tab ${tab === k ? 'active' : ''}" href="#/admin/${k}">${l}</a>`).join('')}</div>
+        <div id="admin-body"></div>
+      </div>`;
+    if (tab === 'episodes') await adminEpisodes();
+    else if (tab === 'stats') await adminStats();
+    else if (tab === 'categories') await adminCategories();
+    else if (tab === 'members') await adminMembers();
+  }
+
+  async function adminEpisodes() {
+    const eps = await loadEpisodes({ include_drafts: 1 });
+    $('#admin-body').innerHTML = eps.length ? `
+      <div class="table-wrap"><table>
+        <thead><tr><th>配信</th><th>カテゴリー</th><th>状態</th><th>再生 / 聴了</th><th>コメント</th><th>公開日</th><th></th></tr></thead>
+        <tbody>${eps.map((ep) => `
+          <tr>
+            <td><a href="#/episode/${ep.id}" style="font-weight:600">${esc(ep.title)}</a><div class="muted small">${fmtDur(ep.duration_sec) || '長さ不明'}${ep.has_audio ? '' : ' ・ <span style="color:var(--red)">音声未アップロード</span>'}</div></td>
+            <td>${catPill(ep)}</td>
+            <td>${ep.status === 'published' ? '<span class="pill done">公開中</span>' : '<span class="pill draft">下書き</span>'}</td>
+            <td class="num"><a href="#/admin/stats/${ep.id}">${ep.listener_count || 0} / ${ep.completed_count || 0}</a></td>
+            <td class="num">${ep.comment_count || 0}</td>
+            <td class="num">${fmtDate(ep.published_at) || '—'}</td>
+            <td class="actions">
+              <button class="btn ghost sm" data-edit="${ep.id}">編集</button>
+              <button class="btn ${ep.status === 'published' ? 'ghost' : 'primary'} sm" data-toggle="${ep.id}" ${!ep.has_audio && ep.status !== 'published' ? 'disabled title="音声をアップロードしてください"' : ''}>${ep.status === 'published' ? '非公開に' : '公開する'}</button>
+              <button class="btn danger sm" data-delete="${ep.id}">削除</button>
+            </td>
+          </tr>`).join('')}</tbody>
+      </table></div>` : '<div class="card empty"><b>配信がまだありません</b>「＋ 新しい配信」から音声ファイルを登録してください。</div>';
+    $('#new-ep').addEventListener('click', () => episodeModal(null));
+    $('#admin-body').addEventListener('click', async (e) => {
+      const t = e.target.closest('button');
+      if (!t) return;
+      const ep = eps.find((x) => x.id === Number(t.dataset.edit || t.dataset.toggle || t.dataset.delete));
+      if (!ep) return;
+      if (t.dataset.edit) episodeModal(ep);
+      if (t.dataset.toggle) {
+        try {
+          await api(`/api/admin/episodes/${ep.id}`, { method: 'PUT', json: { title: ep.title, description: ep.description, category_id: ep.category_id, status: ep.status === 'published' ? 'draft' : 'published' } });
+          toast(ep.status === 'published' ? '非公開にしました' : '公開しました');
+          await loadCategories();
+          renderRoute();
+        } catch (err) { toast(err.message, true); }
+      }
+      if (t.dataset.delete) {
+        if (!confirm(`「${ep.title}」を削除します。音声ファイル・再生履歴・コメントも消えます。よろしいですか？`)) return;
+        try { await api(`/api/admin/episodes/${ep.id}`, { method: 'DELETE' }); toast('削除しました'); if (player.ep && player.ep.id === ep.id) player.close(); await loadCategories(); renderRoute(); } catch (err) { toast(err.message, true); }
+      }
+    });
+  }
+
+  function episodeModal(ep) {
+    const isNew = !ep;
+    const cats = state.categories.map((c) => `<option value="${c.id}" ${ep && ep.category_id === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+    openModal(`
+      <h3>${isNew ? '新しい配信を登録' : '配信を編集'}</h3>
+      <form id="ep-form" class="form-grid">
+        <div class="field full"><label>タイトル</label><input class="input" name="title" required maxlength="120" value="${esc(ep?.title || '')}" placeholder="例: 9月 全体朝礼（社長メッセージ）"></div>
+        <div class="field"><label>カテゴリー</label><select class="select" name="category_id"><option value="">未分類</option>${cats}</select></div>
+        <div class="field"><label>公開設定</label><select class="select" name="status"><option value="published" ${ep?.status === 'published' ? 'selected' : ''}>すぐに公開する</option><option value="draft" ${!ep || ep.status === 'draft' ? 'selected' : ''}>下書きとして保存</option></select></div>
+        <div class="field full"><label>説明（任意）</label><textarea class="textarea" name="description" maxlength="5000" placeholder="内容の要約、話者、関連資料へのリンクなど">${esc(ep?.description || '')}</textarea></div>
+        <div class="field full"><label>音声ファイル${isNew ? '' : '（差し替える場合のみ）'}</label>
+          <label class="upload-box" id="drop"><input type="file" name="file" accept="audio/*,.mp3,.m4a,.wav,.ogg"><b id="file-name">${isNew ? 'ここにドラッグ、またはクリックして選択' : '差し替えるファイルを選択'}</b>mp3 / m4a / wav / ogg、1ファイル 200MB まで</label>
+          <div class="upload-bar" id="upload-bar" hidden><i></i></div>
+        </div>
+      </form>
+      <div class="foot"><button class="btn ghost" data-close>キャンセル</button><button class="btn primary" id="ep-save">${isNew ? '登録する' : '保存する'}</button></div>`);
+    const form = $('#ep-form');
+    const fileInput = form.querySelector('input[type=file]');
+    const drop = $('#drop');
+    if (isNew) form.querySelector('[name=status]').value = 'published';
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) $('#file-name').textContent = `${fileInput.files[0].name}（${(fileInput.files[0].size / 1024 / 1024).toFixed(1)} MB）`; });
+    ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
+    ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
+    drop.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change')); } });
+
+    $('#ep-save').addEventListener('click', async () => {
+      if (!form.reportValidity()) return;
+      const fd = new FormData(form);
+      const file = fileInput.files[0];
+      if (isNew && !file) { toast('音声ファイルを選択してください', true); return; }
+      const btn = $('#ep-save');
+      btn.disabled = true;
+      try {
+        let duration = null;
+        if (file) duration = await probeDuration(file);
+        const payload = { title: fd.get('title'), description: fd.get('description'), category_id: fd.get('category_id') ? Number(fd.get('category_id')) : null, duration_sec: duration };
+        let id = ep?.id;
+        if (isNew) id = (await api('/api/admin/episodes', { method: 'POST', json: payload })).id;
+        else await api(`/api/admin/episodes/${id}`, { method: 'PUT', json: payload });
+        if (file) {
+          btn.textContent = 'アップロード中…';
+          $('#upload-bar').hidden = false;
+          await uploadAudio(id, file, duration, (p) => { $('#upload-bar > i').style.width = `${Math.round(p * 100)}%`; });
+        }
+        await api(`/api/admin/episodes/${id}`, { method: 'PUT', json: { ...payload, status: fd.get('status') } });
+        toast(isNew ? '配信を登録しました' : '保存しました');
+        closeModal();
+        await loadCategories();
+        renderRoute();
+      } catch (err) { toast(err.message, true); btn.disabled = false; btn.textContent = isNew ? '登録する' : '保存する'; }
+    });
+  }
+
+  function probeDuration(file) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const a = new Audio();
+      a.preload = 'metadata';
+      a.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(isFinite(a.duration) ? a.duration : null); };
+      a.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      a.src = url;
+    });
+  }
+  function guessType(file) {
+    if (file.type && file.type !== 'application/octet-stream') return file.type;
+    const ext = file.name.split('.').pop().toLowerCase();
+    return { mp3: 'audio/mpeg', m4a: 'audio/mp4', aac: 'audio/aac', wav: 'audio/wav', ogg: 'audio/ogg', webm: 'audio/webm' }[ext] || 'application/octet-stream';
+  }
+  function uploadAudio(id, file, duration, onProgress) {
+    if (window.__DEMO__) return window.demoUpload(id, file, duration, onProgress);
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', `/api/admin/episodes/${id}/audio`);
+      xhr.setRequestHeader('Content-Type', guessType(file));
+      if (duration) xhr.setRequestHeader('X-Audio-Duration', String(duration));
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+      xhr.onload = () => {
+        let data = {};
+        try { data = JSON.parse(xhr.responseText); } catch (e) { /* noop */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+        else reject(new Error(data.error || `アップロードに失敗しました (${xhr.status})`));
+      };
+      xhr.onerror = () => reject(new Error('アップロードに失敗しました。通信環境を確認してください'));
+      xhr.send(file);
+    });
+  }
+
+  async function adminStats() {
+    const data = await api('/api/admin/stats');
+    const pub = data.episodes.filter((e) => e.status === 'published');
+    const total = data.total_members || 0;
+    const avgReach = pub.length && total ? Math.round(pub.reduce((a, e) => a + e.listener_count / total, 0) / pub.length * 100) : 0;
+    const avgDone = pub.length && total ? Math.round(pub.reduce((a, e) => a + e.completed_count / total, 0) / pub.length * 100) : 0;
+    $('#admin-body').innerHTML = `
+      <div class="stat-tiles">
+        <div class="tile"><div class="k">メンバー数</div><div class="v num">${total}<small>人</small></div></div>
+        <div class="tile"><div class="k">公開中の配信</div><div class="v num">${pub.length}<small>本</small></div></div>
+        <div class="tile"><div class="k">平均 再生率</div><div class="v num">${avgReach}<small>%</small></div></div>
+        <div class="tile"><div class="k">平均 聴了率</div><div class="v num">${avgDone}<small>%</small></div></div>
+      </div>
+      <p class="muted small" style="margin-bottom:10px">行をクリックすると、誰がどこまで聴いたかを確認できます。「聴了」は 90% 以上再生した人の数です。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>配信</th><th>カテゴリー</th><th>再生した人</th><th>聴了</th><th>再生率</th><th>コメント</th><th>公開日</th></tr></thead>
+        <tbody>${data.episodes.map((e) => `
+          <tr class="clickable" data-listeners="${e.id}">
+            <td style="font-weight:600">${esc(e.title)}${e.status !== 'published' ? ' <span class="pill draft">下書き</span>' : ''}</td>
+            <td>${catPill(e)}</td>
+            <td class="num">${e.listener_count} / ${total}</td>
+            <td class="num">${e.completed_count}</td>
+            <td><div class="progress ${total && e.completed_count === total ? 'done' : ''}"><i style="width:${total ? Math.round(e.listener_count / total * 100) : 0}%"></i></div></td>
+            <td class="num">${e.comment_count}</td>
+            <td class="num">${fmtDate(e.published_at) || '—'}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`;
+    $('#admin-body').addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-listeners]');
+      if (tr) go(`/admin/stats/${tr.dataset.listeners}`);
+    });
+    if (window.__DEMO__) $('#csv')?.addEventListener('click', (e) => { e.preventDefault(); toast('デモ版では CSV 出力は動作しません'); });
+    if (state.route.id) listenersModal(state.route.id);
+  }
+
+  async function listenersModal(id) {
+    let data;
+    try { data = await api(`/api/admin/episodes/${id}/listeners`); } catch (e) { toast(e.message, true); return; }
+    const dur = Number(data.episode.duration_sec) || 0;
+    const rows = data.listeners.map((l) => {
+      const played = !!l.last_played_at;
+      const p = l.completed ? 100 : dur ? Math.min(99, Math.round((Number(l.max_position_sec) || 0) / dur * 100)) : 0;
+      return `<tr>
+        <td><b>${esc(l.name)}</b><div class="muted small">${esc(l.email)}</div></td>
+        <td>${l.completed ? '<span class="pill done">聴了</span>' : played ? `<span class="pill partial">${p}% まで</span>` : '<span class="pill none">未再生</span>'}</td>
+        <td><div class="progress ${l.completed ? 'done' : ''}"><i style="width:${played ? p : 0}%"></i></div></td>
+        <td class="num">${played ? l.play_count : '—'}</td>
+        <td class="num small">${played ? fmtDateTime(l.last_played_at) : '—'}</td>
+      </tr>`;
+    }).join('');
+    const played = data.listeners.filter((l) => l.last_played_at).length;
+    openModal(`
+      <h3>${esc(data.episode.title)}</h3>
+      <p class="muted small" style="margin:-10px 0 14px">${played} / ${data.listeners.length} 人が再生 ・ ${data.listeners.filter((l) => l.completed).length} 人が聴了${dur ? ` ・ 長さ ${fmtDur(dur)}` : ''}</p>
+      <div class="table-wrap"><table><thead><tr><th>メンバー</th><th>状態</th><th>進捗</th><th>再生回数</th><th>最終再生</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="foot"><button class="btn" data-close>閉じる</button></div>`, () => { if (state.route.name === 'admin') history.replaceState(null, '', '#/admin/stats'); });
+  }
+
+  async function adminCategories() {
+    const cats = state.categories;
+    $('#admin-body').innerHTML = `
+      <div class="table-wrap"><table>
+        <thead><tr><th>名前</th><th>色</th><th>並び順</th><th>配信数</th><th></th></tr></thead>
+        <tbody>
+          ${cats.map((c) => `<tr data-cat="${c.id}">
+            <td><input class="input" name="name" value="${esc(c.name)}" maxlength="30"></td>
+            <td><input type="color" name="color" value="${esc(c.color)}" style="width:44px;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff"></td>
+            <td><input class="input num" name="sort_order" type="number" value="${c.sort_order}" style="width:80px"></td>
+            <td class="num">${c.episode_count || 0}</td>
+            <td class="actions"><button class="btn ghost sm" data-save="${c.id}">保存</button><button class="btn danger sm" data-remove="${c.id}">削除</button></td>
+          </tr>`).join('')}
+          <tr data-cat="new">
+            <td><input class="input" name="name" placeholder="新しいカテゴリー名" maxlength="30"></td>
+            <td><input type="color" name="color" value="#E8630A" style="width:44px;height:32px;border:1px solid var(--border);border-radius:6px;background:#fff"></td>
+            <td><input class="input num" name="sort_order" type="number" value="${cats.length + 1}" style="width:80px"></td>
+            <td></td>
+            <td class="actions"><button class="btn primary sm" data-add>追加</button></td>
+          </tr>
+        </tbody>
+      </table></div>
+      <p class="muted small" style="margin-top:10px">カテゴリーを削除しても配信は消えません。「未分類」に戻ります。</p>`;
+    $('#admin-body').addEventListener('click', async (e) => {
+      const t = e.target.closest('button');
+      if (!t) return;
+      const tr = t.closest('tr');
+      const val = (n) => tr.querySelector(`[name=${n}]`).value;
+      const payload = { name: val('name'), color: val('color').toUpperCase(), sort_order: Number(val('sort_order')) };
+      try {
+        if (t.dataset.add !== undefined) { await api('/api/admin/categories', { method: 'POST', json: payload }); toast('追加しました'); }
+        else if (t.dataset.save) { await api(`/api/admin/categories/${t.dataset.save}`, { method: 'PUT', json: payload }); toast('保存しました'); }
+        else if (t.dataset.remove) {
+          const c = cats.find((x) => x.id === Number(t.dataset.remove));
+          if (!confirm(`カテゴリー「${c.name}」を削除しますか？`)) return;
+          await api(`/api/admin/categories/${c.id}`, { method: 'DELETE' });
+          toast('削除しました');
+        }
+        await loadCategories();
+        renderRoute();
+      } catch (err) { toast(err.message, true); }
+    });
+  }
+
+  async function adminMembers() {
+    const data = await api('/api/admin/members');
+    $('#admin-body').innerHTML = `
+      <p class="muted small" style="margin-bottom:10px">メンバーは Cloudflare Access でログインした時点で自動的に追加されます。管理者にすると配信の登録や視聴状況の確認ができます。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>メンバー</th><th>権限</th><th>再生した配信</th><th>聴了</th><th>コメント</th><th>最終再生</th><th>最終アクセス</th><th></th></tr></thead>
+        <tbody>${data.members.map((m) => `
+          <tr>
+            <td><b>${esc(m.name)}</b><div class="muted small">${esc(m.email)}</div></td>
+            <td>${m.role === 'admin' ? '<span class="pill admin">管理者</span>' : '<span class="pill">メンバー</span>'}</td>
+            <td class="num">${m.played_count} / ${data.published_count}</td>
+            <td class="num">${m.completed_count}</td>
+            <td class="num">${m.comment_count}</td>
+            <td class="num small">${m.last_played_at ? fmtDateTime(m.last_played_at) : '—'}</td>
+            <td class="num small">${fmtDateTime(m.last_seen_at)}</td>
+            <td class="actions">${m.id === state.me.id ? '<span class="muted small">自分</span>' : `<button class="btn ghost sm" data-role="${m.role === 'admin' ? 'member' : 'admin'}" data-id="${m.id}">${m.role === 'admin' ? '管理者を外す' : '管理者にする'}</button>`}</td>
+          </tr>`).join('')}</tbody>
+      </table></div>`;
+    $('#admin-body').addEventListener('click', async (e) => {
+      const t = e.target.closest('button[data-role]');
+      if (!t) return;
+      try { await api(`/api/admin/members/${t.dataset.id}`, { method: 'PUT', json: { role: t.dataset.role } }); toast('変更しました'); renderRoute(); } catch (err) { toast(err.message, true); }
+    });
+  }
+
+  /* ───────── モーダル ───────── */
+  let onCloseModal = null;
+  function openModal(html, onClose) {
+    closeModal();
+    onCloseModal = onClose || null;
+    const bg = document.createElement('div');
+    bg.className = 'modal-bg';
+    bg.id = 'modal';
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
+    bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-close]')) closeModal(); });
+    document.body.appendChild(bg);
+    const first = bg.querySelector('input, textarea, select, button');
+    if (first) first.focus();
+  }
+  function closeModal() {
+    const m = $('#modal');
+    if (m) m.remove();
+    if (onCloseModal) { const f = onCloseModal; onCloseModal = null; f(); }
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+  /* ───────── グローバルなクリック処理 ───────── */
+  document.addEventListener('click', async (e) => {
+    const playBtn = e.target.closest('[data-play]');
+    if (playBtn) {
+      e.stopPropagation();
+      const id = Number(playBtn.dataset.play);
+      const ep = state.episodes.find((x) => x.id === id) || (state.detail && state.detail.episode.id === id ? state.detail.episode : null);
+      if (ep) player.load(ep, true);
+      return;
+    }
+    const open = e.target.closest('[data-open]');
+    if (open) { go(`/episode/${open.dataset.open}`); return; }
+    const del = e.target.closest('[data-del-comment]');
+    if (del) {
+      if (!confirm('このコメントを削除しますか？')) return;
+      try {
+        await api(`/api/comments/${del.dataset.delComment}`, { method: 'DELETE' });
+        state.detail.comments = state.detail.comments.filter((c) => c.id !== Number(del.dataset.delComment));
+        state.detail.episode.comment_count = Math.max(0, (state.detail.episode.comment_count || 1) - 1);
+        toast('削除しました');
+        renderEpisode(false);
+      } catch (err) { toast(err.message, true); }
+      return;
+    }
+    if (e.target.id === 'rename') {
+      const name = prompt('表示名（コメントや視聴状況に表示されます）', state.me.name);
+      if (name && name.trim() && name.trim() !== state.me.name) {
+        try { await api('/api/me', { method: 'PUT', json: { name: name.trim() } }); state.me.name = name.trim(); renderNav(); renderRoute(false); toast('表示名を変更しました'); } catch (err) { toast(err.message, true); }
+      }
+    }
+  });
+
+  $('#p-play').addEventListener('click', () => player.toggle());
+  $('#p-back').addEventListener('click', () => player.skip(-15));
+  $('#p-fwd').addEventListener('click', () => player.skip(15));
+  $('#p-speed').addEventListener('click', () => player.cycleSpeed());
+  $('#p-close').addEventListener('click', () => player.close());
+  $('#p-title').addEventListener('click', () => { if (player.ep) go(`/episode/${player.ep.id}`); });
+  const seek = $('#p-seek');
+  seek.addEventListener('input', () => { player.seeking = true; const dur = audio.duration || Number(player.ep?.duration_sec) || 0; $('#p-cur').textContent = fmtTime((seek.value / 1000) * dur); });
+  seek.addEventListener('change', () => { const dur = audio.duration || Number(player.ep?.duration_sec) || 0; if (dur) audio.currentTime = (seek.value / 1000) * dur; player.seeking = false; });
+  document.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || $('#modal')) return;
+    if (e.code === 'Space' && player.ep) { e.preventDefault(); player.toggle(); }
+    if (e.code === 'ArrowLeft' && player.ep) player.skip(-15);
+    if (e.code === 'ArrowRight' && player.ep) player.skip(15);
+  });
+
+  /* ───────── 起動 ───────── */
+  async function boot() {
+    try {
+      const me = await api('/api/me');
+      state.me = me.member;
+      state.isAdmin = me.isAdmin;
+      await loadCategories();
+      window.addEventListener('hashchange', () => renderRoute(true));
+      await renderRoute(true);
+    } catch (e) {
+      if ($('#login').hidden) $('#main').innerHTML = `<div class="page"><div class="card empty"><b>読み込めませんでした</b>${esc(e.message)}</div></div>`;
+    }
+  }
+  window.audioApp = { reload: boot, state, player };
+  boot();
+})();
+
+</script>
+</body>
+</html>
