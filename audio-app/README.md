@@ -60,6 +60,17 @@ bash test/smoke.sh     # npm run dev を起動した状態で API の一連の�
 
 前提: Cloudflare アカウント、Cloudflare に紐づいたドメイン（markeline.net）、Zero Trust（Access）が有効。
 
+### GitHub Actions から行う（Claude Code のリモート環境から Cloudflare に届かない場合）
+
+Claude Code の Web 版リモート環境は、組織のネットワーク設定次第で api.cloudflare.com へ接続できない。
+その場合は GitHub Actions がデプロイを実行する。
+
+1. Cloudflare の API トークンと Account ID を用意する（権限は下記「API トークンの権限」）
+2. GitHub のリポジトリ → Settings → Secrets and variables → Actions → New repository secret で
+   `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録する
+3. Actions タブ → 「Deploy audio-app to Cloudflare」 → Run workflow（ドメインや管理者は既定値のままでよい）
+   Claude Code からも GitHub 連携経由で起動・ログ確認ができる
+
 ### 一番速い方法（1コマンド）
 
 API トークンを用意して、次を実行すると D1 / R2 / Access アプリ / マイグレーション / デプロイまで一気に終わります。
