@@ -73,7 +73,8 @@ function saveCfg() { fs.writeFileSync(cfgPath, cfg); }
 (async () => {
   /* 0. トークン確認 */
   log('トークンを確認');
-  const tokenInfo = await cf('GET', '/user/tokens/verify').catch((e) => { throw new Error(`トークンが無効です: ${e.message}`); });
+  // 「ユーザーの詳細: 読み取り」が無いトークンでは verify が 403 になることがあるので、失敗しても続行する
+  const tokenInfo = await cf('GET', '/user/tokens/verify').catch((e) => ({ status: `確認できず (${e.message.split('→')[1]?.trim() || e.message})` }));
   console.log(`  status: ${tokenInfo.status}`);
 
   /* 1. ゾーン確認 */
