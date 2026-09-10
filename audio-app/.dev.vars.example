@@ -1,0 +1,5 @@
+# ローカル開発用。コピーして .dev.vars にする（.dev.vars は git に含めない）
+ENVIRONMENT=development
+# ローカルでは Cloudflare Access を通らないので、この人物としてふるまう
+DEV_USER_EMAIL=you@example.co.jp
+ADMIN_EMAILS=you@example.co.jp

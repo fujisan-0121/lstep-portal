@@ -1,0 +1,56 @@
+{
+  // 社内音声配信アプリ (Cloudflare Workers + D1 + R2 + Cloudflare Access)
+  // 詳しい手順は README.md を参照
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "markeline-audio",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // workers.dev の直URLと preview URL は必ず無効化する（Access を経由しない入口を作らない）
+  "workers_dev": false,
+  "preview_urls": false,
+
+  // 本番の入口はカスタムドメイン。Cloudflare Access のアプリケーションもこのドメインで作る
+  // scripts/deploy.mjs が AUDIO_DOMAIN（既定 audio.lstepoffcial.com）で有効化する
+  // "routes": [{ "pattern": "audio.lstepoffcial.com", "custom_domain": true }],
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "audio_db",
+      // `wrangler d1 create audio_db` の結果に置き換える
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "AUDIO",
+      // `wrangler r2 bucket create markeline-audio` で作る
+      "bucket_name": "markeline-audio"
+    }
+  ],
+
+  "vars": {
+    "ENVIRONMENT": "production",
+    // Cloudflare Zero Trust のチームドメイン（例: markeline.cloudflareaccess.com）
+    "ACCESS_TEAM_DOMAIN": "",
+    // Access アプリケーションの Audience (AUD) タグ
+    "ACCESS_AUD": "",
+    // 管理者のメールアドレス（カンマ区切り）。ここに載っている人は常に管理者
+    "ADMIN_EMAILS": "fujiwara@markeline.net",
+    // 1ファイルの上限（MB）
+    "MAX_UPLOAD_MB": "200"
+  },
+
+  "observability": { "enabled": true }
+}

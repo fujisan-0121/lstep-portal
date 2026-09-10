@@ -1,0 +1,81 @@
+name: Deploy audio-app to Cloudflare
+
+# 手動実行（Actions タブ → このワークフロー → Run workflow）
+# 必要なリポジトリシークレット: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# 権限の一覧は audio-app/README.md「API トークンの権限」を参照
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: '配信ドメイン（Cloudflare 管理下のゾーンのサブドメイン）'
+        required: false
+        default: 'audio.lstepoffcial.com'
+      admin_emails:
+        description: '管理者メールアドレス（カンマ区切り）'
+        required: false
+        default: 'fujiwara@markeline.net'
+      allowed_email_domains:
+        description: 'ログインを許可するメールドメイン（カンマ区切り）'
+        required: false
+        default: 'markeline.net'
+      allowed_emails:
+        description: 'ドメイン外で個別に許可するメールアドレス（カンマ区切り、任意）'
+        required: false
+        default: ''
+      team_domain:
+        description: 'Access のチームドメイン（xxxx.cloudflareaccess.com）。API で取得できない場合のみ指定'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-audio-app
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: audio-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: audio-app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Check secrets
+        run: |
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::error::リポジトリシークレット CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID を設定してください（Settings → Secrets and variables → Actions）"
+            exit 1
+          fi
+
+      - name: Deploy (D1 / R2 / Access / migrations / worker)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          AUDIO_DOMAIN: ${{ inputs.domain }}
+          ADMIN_EMAILS: ${{ inputs.admin_emails }}
+          ALLOWED_EMAIL_DOMAINS: ${{ inputs.allowed_email_domains }}
+          ALLOWED_EMAILS: ${{ inputs.allowed_emails }}
+          ACCESS_TEAM_DOMAIN: ${{ inputs.team_domain }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: node scripts/deploy.mjs
+
+      - name: Summary
+        run: |
+          echo "## 社内音声ライブラリ デプロイ完了" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: https://${{ inputs.domain }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 管理者: ${{ inputs.admin_emails }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ログイン許可: @${{ inputs.allowed_email_domains }}" >> "$GITHUB_STEP_SUMMARY"
