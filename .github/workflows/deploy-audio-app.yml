@@ -22,6 +22,10 @@ on:
         description: 'ドメイン外で個別に許可するメールアドレス（カンマ区切り、任意）'
         required: false
         default: ''
+      team_domain:
+        description: 'Access のチームドメイン（xxxx.cloudflareaccess.com）。API で取得できない場合のみ指定'
+        required: false
+        default: ''
 
 concurrency:
   group: deploy-audio-app
@@ -64,6 +68,7 @@ jobs:
           ADMIN_EMAILS: ${{ inputs.admin_emails }}
           ALLOWED_EMAIL_DOMAINS: ${{ inputs.allowed_email_domains }}
           ALLOWED_EMAILS: ${{ inputs.allowed_emails }}
+          ACCESS_TEAM_DOMAIN: ${{ inputs.team_domain }}
           WRANGLER_SEND_METRICS: 'false'
         run: node scripts/deploy.mjs
 

@@ -100,8 +100,14 @@ function saveCfg() { fs.writeFileSync(cfgPath, cfg); }
 
   /* 4. Access */
   log('Cloudflare Access');
-  const org = await cf('GET', `/accounts/${ACCOUNT}/access/organizations`);
-  const teamDomain = org.auth_domain;
+  // チームドメイン（xxxx.cloudflareaccess.com）。API で読めない権限構成のときは ACCESS_TEAM_DOMAIN で直接渡せる
+  let teamDomain = process.env.ACCESS_TEAM_DOMAIN || '';
+  if (!teamDomain) {
+    const org = await cf('GET', `/accounts/${ACCOUNT}/access/organizations`).catch((e) => {
+      throw new Error(`Access のチームドメインを取得できませんでした（${e.message}）。Zero Trust → Settings → Custom Pages の Team domain を ACCESS_TEAM_DOMAIN として渡してください`);
+    });
+    teamDomain = org.auth_domain;
+  }
   console.log(`  team domain: ${teamDomain}`);
   const apps = await cf('GET', `/accounts/${ACCOUNT}/access/apps`);
   let app = apps.find((a) => a.domain === DOMAIN);
