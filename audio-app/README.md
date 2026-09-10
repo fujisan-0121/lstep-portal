@@ -58,7 +58,7 @@ bash test/smoke.sh     # npm run dev を起動した状態で API の一連の�
 
 ## 本番デプロイ手順
 
-前提: Cloudflare アカウント、Cloudflare に紐づいたドメイン（markeline.net）、Zero Trust（Access）が有効。
+前提: Cloudflare アカウント、Cloudflare に紐づいたドメイン（現状は lstepoffcial.com のみ。markeline.net は Cloudflare 管理外）、Zero Trust（Access）が有効。
 
 ### GitHub Actions から行う（Claude Code のリモート環境から Cloudflare に届かない場合）
 
@@ -78,10 +78,10 @@ API トークンを用意して、次を実行すると D1 / R2 / Access アプ�
 ```bash
 cd audio-app && npm install
 CLOUDFLARE_API_TOKEN=xxxx CLOUDFLARE_ACCOUNT_ID=yyyy npm run deploy:full
-# 完了すると https://audio.markeline.net が開ける
+# 完了すると https://audio.lstepoffcial.com が開ける
 ```
 
-省略可能な環境変数: `AUDIO_DOMAIN`（既定 audio.markeline.net）、`ADMIN_EMAILS`（既定 fujiwara@markeline.net）、
+省略可能な環境変数: `AUDIO_DOMAIN`（既定 audio.lstepoffcial.com）、`ADMIN_EMAILS`（既定 fujiwara@markeline.net）、
 `ALLOWED_EMAIL_DOMAINS`（既定 markeline.net）、`ALLOWED_EMAILS`（ドメイン外で個別に許可する人）。
 
 #### API トークンの権限
@@ -95,7 +95,7 @@ Cloudflare ダッシュボード → My Profile → API Tokens → Create Token 
 | Account / Workers R2 Storage | Edit |
 | Account / Access: Apps and Policies | Edit |
 | Account / Access: Organizations, Identity Providers, and Groups | Read |
-| Zone / Workers Routes | Edit（Zone Resources は markeline.net） |
+| Zone / Workers Routes | Edit（Zone Resources は lstepoffcial.com） |
 | Zone / DNS | Edit（カスタムドメインの作成に必要） |
 | User / User Details | Read（トークン検証に使う） |
 

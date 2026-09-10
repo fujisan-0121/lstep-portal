@@ -12,8 +12,8 @@
   "preview_urls": false,
 
   // 本番の入口はカスタムドメイン。Cloudflare Access のアプリケーションもこのドメインで作る
-  // scripts/deploy.mjs が AUDIO_DOMAIN（既定 audio.markeline.net）で有効化する
-  // "routes": [{ "pattern": "audio.markeline.net", "custom_domain": true }],
+  // scripts/deploy.mjs が AUDIO_DOMAIN（既定 audio.lstepoffcial.com）で有効化する
+  // "routes": [{ "pattern": "audio.lstepoffcial.com", "custom_domain": true }],
 
   "assets": {
     "directory": "./public",

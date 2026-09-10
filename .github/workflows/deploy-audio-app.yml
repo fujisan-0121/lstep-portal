@@ -9,7 +9,7 @@ on:
       domain:
         description: '配信ドメイン（Cloudflare 管理下のゾーンのサブドメイン）'
         required: false
-        default: 'audio.markeline.net'
+        default: 'audio.lstepoffcial.com'
       admin_emails:
         description: '管理者メールアドレス（カンマ区切り）'
         required: false

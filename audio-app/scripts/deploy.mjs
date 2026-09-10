@@ -15,7 +15,7 @@
  * 環境変数
  *   CLOUDFLARE_API_TOKEN   必須。必要な権限は README の「API トークンの権限」を参照
  *   CLOUDFLARE_ACCOUNT_ID  必須。Cloudflare ダッシュボード右側の Account ID
- *   AUDIO_DOMAIN           省略時 audio.markeline.net（Cloudflare 管理下のゾーンのサブドメイン）
+ *   AUDIO_DOMAIN           省略時 audio.lstepoffcial.com（Cloudflare 管理下のゾーンのサブドメイン）
  *   ADMIN_EMAILS           省略時 fujiwara@markeline.net（カンマ区切り）
  *   ALLOWED_EMAIL_DOMAINS  省略時 markeline.net（Access で許可するメールドメイン。カンマ区切り）
  *   ALLOWED_EMAILS         省略可。ドメイン外で個別に許可するメールアドレス（カンマ区切り）
@@ -30,7 +30,7 @@ const cfgPath = path.join(root, 'wrangler.jsonc');
 
 const TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const ACCOUNT = process.env.CLOUDFLARE_ACCOUNT_ID;
-const DOMAIN = process.env.AUDIO_DOMAIN || 'audio.markeline.net';
+const DOMAIN = process.env.AUDIO_DOMAIN || 'audio.lstepoffcial.com';
 const ADMIN_EMAILS = process.env.ADMIN_EMAILS || 'fujiwara@markeline.net';
 const ALLOWED_DOMAINS = (process.env.ALLOWED_EMAIL_DOMAINS || 'markeline.net').split(',').map((s) => s.trim()).filter(Boolean);
 const ALLOWED_EMAILS = (process.env.ALLOWED_EMAILS || '').split(',').map((s) => s.trim()).filter(Boolean);
