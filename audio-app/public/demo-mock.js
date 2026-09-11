@@ -190,12 +190,13 @@
   window.demoUpload = function demoUpload(id, file, duration, onProgress) {
     return new Promise((resolve) => {
       let p = 0;
-      const t = setInterval(() => { p = Math.min(1, p + 0.12); onProgress(p); if (p >= 1) { clearInterval(t); const e = db.episodes.find((x) => x.id === id); if (e) { e.audio_key = `demo/${id}`; e.audio_content_type = 'audio/wav'; e.audio_size = file.size; e.duration_sec = DEMO_DURATION; } save(); resolve({ ok: true }); } }, 120);
+      const t = setInterval(() => { p = Math.min(1, p + 0.12); onProgress(p); if (p >= 1) { clearInterval(t); const e = db.episodes.find((x) => x.id === id); if (e) { e.audio_key = `demo/${id}`; e.audio_content_type = file.type || 'audio/wav'; e.audio_size = file.size; e.duration_sec = duration || DEMO_DURATION; } urlCache.set(id, URL.createObjectURL(file)); save(); resolve({ ok: true }); } }, 120);
     });
   };
 
-  /* 合成音声（エピソードごとに音程を変えた、静かなチャイム風の音） */
+  /* 合成音声（エピソードごとに音程を変えた、静かなチャイム風の音）。デモ内で録音・アップロードしたものは実際の音声を使う */
   const urlCache = new Map();
+  window.demoUrlCache = urlCache;
   window.demoAudioUrl = function demoAudioUrl(ep) {
     if (urlCache.has(ep.id)) return urlCache.get(ep.id);
     const rate = 22050, sec = DEMO_DURATION, n = rate * sec;

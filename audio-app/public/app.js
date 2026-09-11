@@ -214,6 +214,8 @@
   const ICON = {
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>',
+    stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
   };
 
   /* ───────── ルーティング ───────── */
@@ -492,12 +494,31 @@
         <div class="field"><label>カテゴリー</label><select class="select" name="category_id"><option value="">未分類</option>${cats}</select></div>
         <div class="field"><label>公開設定</label><select class="select" name="status"><option value="published" ${ep?.status === 'published' ? 'selected' : ''}>すぐに公開する</option><option value="draft" ${!ep || ep.status === 'draft' ? 'selected' : ''}>下書きとして保存</option></select></div>
         <div class="field full"><label>説明（任意）</label><textarea class="textarea" name="description" maxlength="5000" placeholder="内容の要約、話者、関連資料へのリンクなど">${esc(ep?.description || '')}</textarea></div>
-        <div class="field full"><label>音声ファイル${isNew ? '' : '（差し替える場合のみ）'}</label>
-          <label class="upload-box" id="drop"><input type="file" name="file" accept="audio/*,.mp3,.m4a,.wav,.ogg"><b id="file-name">${isNew ? 'ここにドラッグ、またはクリックして選択' : '差し替えるファイルを選択'}</b>mp3 / m4a / wav / ogg、1ファイル 200MB まで</label>
+        <div class="field full">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+            <label>音声${isNew ? '' : '（差し替える場合のみ）'}</label>
+            <div class="seg" role="tablist"><button type="button" class="active" data-mode="file">ファイルを選ぶ</button><button type="button" data-mode="record">その場で録音</button></div>
+          </div>
+          <div id="file-panel">
+            <label class="upload-box" id="drop"><input type="file" name="file" accept="audio/*,.mp3,.m4a,.wav,.ogg"><b id="file-name">${isNew ? 'ここにドラッグ、またはクリックして選択' : '差し替えるファイルを選択'}</b>mp3 / m4a / wav / ogg、1ファイル 200MB まで</label>
+          </div>
+          <div id="rec-panel" class="rec-panel" hidden>
+            <div class="rec-time" id="rec-time">0:00</div>
+            <div class="rec-status" id="rec-status">ボタンを押すと録音が始まります</div>
+            <button type="button" class="rec-btn" id="rec-btn" aria-label="録音 / 停止">${ICON.mic}</button>
+            <div class="rec-level" id="rec-level"><i></i></div>
+            <div class="rec-actions"><button type="button" class="btn ghost sm" id="rec-pause" hidden>一時停止</button><button type="button" class="btn ghost sm" id="rec-redo" hidden>録り直す</button></div>
+            <div class="rec-preview" id="rec-preview" hidden></div>
+            <div class="rec-hint">録音は自動で MP3 になり、iPhone でも PC でも再生できます。静かな場所で、口元から 20cm ほど離して話すと聴きやすくなります</div>
+            <div class="rec-hint" id="rec-unsupported" hidden style="color:var(--red)">このブラウザは録音に対応していません。Chrome / Safari / Edge の最新版でお試しください</div>
+          </div>
           <div class="upload-bar" id="upload-bar" hidden><i></i></div>
         </div>
       </form>
-      <div class="foot"><button class="btn ghost" data-close>キャンセル</button><button class="btn primary" id="ep-save">${isNew ? '登録する' : '保存する'}</button></div>`);
+      <div class="foot"><button class="btn ghost" data-close>キャンセル</button><button class="btn primary" id="ep-save">${isNew ? '登録する' : '保存する'}</button></div>`, () => {
+      const R = window.AudioRecorder;
+      if (R && R.state !== 'idle') { R.cancel(); toast('録音を破棄しました'); }
+    });
     const form = $('#ep-form');
     const fileInput = form.querySelector('input[type=file]');
     const drop = $('#drop');
@@ -507,16 +528,84 @@
     ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
     drop.addEventListener('drop', (e) => { if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change')); } });
 
+    /* ── その場で録音 ── */
+    const R = window.AudioRecorder;
+    let mode = 'file';
+    let recorded = null; // { file, duration, url }
+    const segBtns = form.querySelectorAll('.seg button');
+    segBtns.forEach((b) => b.addEventListener('click', () => {
+      mode = b.dataset.mode;
+      segBtns.forEach((x) => x.classList.toggle('active', x === b));
+      $('#file-panel').hidden = mode !== 'file';
+      $('#rec-panel').hidden = mode !== 'record';
+    }));
+    const recBtn = $('#rec-btn'), recTime = $('#rec-time'), recStatus = $('#rec-status'), recLevel = $('#rec-level > i'), recPause = $('#rec-pause'), recRedo = $('#rec-redo'), recPreview = $('#rec-preview');
+    if (!R || !R.supported) { $('#rec-unsupported').hidden = false; recBtn.disabled = true; }
+    function renderRec() {
+      const st = R ? R.state : 'idle';
+      const active = st === 'recording' || st === 'paused';
+      recBtn.innerHTML = active ? ICON.stop : ICON.mic;
+      recBtn.classList.toggle('stop', active);
+      recBtn.disabled = st === 'stopping' || !(R && R.supported);
+      recPause.hidden = !active;
+      recPause.textContent = st === 'paused' ? '再開する' : '一時停止';
+      recStatus.innerHTML = st === 'recording' ? '<span class="live"></span>録音中（もう一度押すと停止）'
+        : st === 'paused' ? '<span class="live paused"></span>一時停止中'
+        : st === 'stopping' ? 'MP3 に書き出しています…'
+        : recorded ? '録音できました。下で聴き直してから登録してください' : 'ボタンを押すと録音が始まります';
+      recRedo.hidden = !(recorded && st === 'idle');
+      recPreview.hidden = !(recorded && st === 'idle');
+    }
+    recBtn.addEventListener('click', async () => {
+      if (!R || !R.supported) return;
+      if (R.state === 'idle') {
+        try {
+          if (recorded && recorded.url) URL.revokeObjectURL(recorded.url);
+          recorded = null; recPreview.innerHTML = ''; recTime.textContent = '0:00';
+          await R.start({
+            onLevel: (v) => { recLevel.style.width = `${Math.round(v * 100)}%`; },
+            onTime: (t) => { recTime.textContent = fmtTime(t); },
+          });
+        } catch (e) { toast(e.message, true); }
+        renderRec();
+        return;
+      }
+      if (R.state === 'recording' || R.state === 'paused') {
+        try {
+          const p = R.stop();
+          renderRec();
+          const r = await p;
+          recorded = { file: r.file, duration: r.duration, url: URL.createObjectURL(r.blob) };
+          recTime.textContent = fmtTime(r.duration);
+          const size = r.blob.size >= 1024 * 1024 ? `${(r.blob.size / 1024 / 1024).toFixed(1)} MB` : `${Math.round(r.blob.size / 1024)} KB`;
+          recPreview.innerHTML = `<div class="muted small">長さ ${fmtTime(r.duration)} ・ ${size}（MP3）</div><audio controls preload="metadata" src="${recorded.url}"></audio>`;
+          if (r.duration < 1) { toast('録音が短すぎます。もう一度録音してください', true); recorded = null; }
+        } catch (e) { toast(e.message, true); }
+        recLevel.style.width = '0%';
+        renderRec();
+      }
+    });
+    recPause.addEventListener('click', () => { if (!R) return; if (R.state === 'recording') R.pause(); else if (R.state === 'paused') R.resume(); renderRec(); });
+    recRedo.addEventListener('click', () => { if (recorded && recorded.url) URL.revokeObjectURL(recorded.url); recorded = null; recTime.textContent = '0:00'; recPreview.innerHTML = ''; renderRec(); });
+    renderRec();
+
     $('#ep-save').addEventListener('click', async () => {
       if (!form.reportValidity()) return;
       const fd = new FormData(form);
-      const file = fileInput.files[0];
-      if (isNew && !file) { toast('音声ファイルを選択してください', true); return; }
+      let file = fileInput.files[0];
+      let recDuration = null;
+      if (mode === 'record') {
+        if (R && (R.state === 'recording' || R.state === 'paused')) { toast('録音を停止してから登録してください', true); return; }
+        if (!recorded) { toast('先に録音してください', true); return; }
+        file = recorded.file;
+        recDuration = recorded.duration;
+      }
+      if (isNew && !file) { toast(mode === 'record' ? '先に録音してください' : '音声ファイルを選択してください', true); return; }
       const btn = $('#ep-save');
       btn.disabled = true;
       try {
-        let duration = null;
-        if (file) duration = await probeDuration(file);
+        let duration = recDuration;
+        if (file && duration == null) duration = await probeDuration(file);
         const payload = { title: fd.get('title'), description: fd.get('description'), category_id: fd.get('category_id') ? Number(fd.get('category_id')) : null, duration_sec: duration };
         let id = ep?.id;
         if (isNew) id = (await api('/api/admin/episodes', { method: 'POST', json: payload })).id;
