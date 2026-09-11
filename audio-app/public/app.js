@@ -276,7 +276,7 @@
       <a class="nav-item" href="#/archive" data-nav="archive">${NAV_ICON.archive}アーカイブ<span class="cnt num">${state.categories.reduce((a, c) => a + (c.episode_count || 0), 0)}</span></a>
       <div class="nav-label">カテゴリー</div>
       ${cats}
-      ${state.isAdmin ? `<div class="nav-label">管理者</div><a class="nav-item" href="#/admin" data-nav="admin">${NAV_ICON.admin}配信管理・視聴状況</a>` : ''}
+      ${state.isAdmin ? `<div class="nav-label">管理者</div><button class="quick-rec" type="button" data-quick-record="">${ICON.mic}<span>録音して配信</span></button><a class="nav-item" href="#/admin" data-nav="admin">${NAV_ICON.admin}配信管理・視聴状況</a>` : ''}
     `;
     $('#me').innerHTML = state.me ? `<b>${esc(state.me.name)}</b>${state.isAdmin ? '<span class="pill admin" style="margin:4px 0">管理者</span><br>' : ''}<span>${esc(state.me.email)}</span><br><button id="rename">表示名を変更</button>` : '';
     if (window.__DEMO__ && state.me) {
@@ -307,6 +307,7 @@
             <span class="en">Internal Voice Library</span>
             <h2>${esc(state.me.name)} さん、おかえりなさい</h2>
             <p>${unheard.length ? `まだ聴いていない配信が ${unheard.length} 件あります。` : 'すべての配信を再生済みです。'}移動中や作業の合間にどうぞ。</p>
+            ${state.isAdmin ? `<div class="hero-actions"><button class="btn primary" type="button" data-quick-record=""><span class="ico">${ICON.mic}</span>録音して配信</button>${state.categories.slice(0, 4).map((c) => `<button class="btn hero-cat" type="button" data-quick-record="${c.id}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}</button>`).join('')}</div>` : ''}
           </div>
           <div class="stats">
             <div class="stat"><b class="num">${eps.length}</b><span>配信数</span></div>
@@ -316,7 +317,7 @@
         </div>
         ${inProgress.length ? `<h3 class="section">続きから聴く</h3><div class="ep-list">${inProgress.map(rowHtml).join('')}</div>` : ''}
         <h3 class="section">新着の配信 <a class="more" href="#/archive">すべて見る</a></h3>
-        ${latest.length ? `<div class="ep-list">${latest.map(rowHtml).join('')}</div>` : `<div class="card empty"><b>まだ配信がありません</b>${state.isAdmin ? '管理画面から最初の配信を登録できます。' : '配信されるとここに表示されます。'}</div>`}
+        ${latest.length ? `<div class="ep-list">${latest.map(rowHtml).join('')}</div>` : `<div class="card empty"><b>まだ配信がありません</b>${state.isAdmin ? '<div style="margin-top:12px"><button class="btn primary" type="button" data-quick-record=""><span class="ico">' + ICON.mic + '</span>最初の配信を録音する</button></div>' : '配信されるとここに表示されます。'}</div>`}
         <h3 class="section">カテゴリーから探す</h3>
         <div class="chips">${state.categories.map((c) => `<a class="chip" href="#/archive/${c.id}"><span class="dot" style="background:${esc(c.color)}"></span>${esc(c.name)}<span class="n">${c.episode_count || 0}</span></a>`).join('')}</div>
       </div>`;
@@ -346,6 +347,7 @@
       <div class="page">
         <div class="page-head">
           <div><span class="en">Archive</span><h2>${cat ? esc(cat.name) : 'すべての配信'}</h2><p>${cat ? `${cat.name} の配信 ${eps.length} 件` : `過去の配信 ${eps.length} 件。カテゴリーやキーワードで絞り込めます`}</p></div>
+          ${state.isAdmin ? `<button class="btn primary" type="button" data-quick-record="${cat ? cat.id : ''}"><span class="ico">${ICON.mic}</span>${cat ? esc(cat.name) + 'に' : ''}録音して配信</button>` : ''}
         </div>
         <div class="toolbar">
           <div class="chips">
@@ -484,25 +486,36 @@
     });
   }
 
-  function episodeModal(ep) {
+  /**
+   * 配信の登録・編集モーダル。
+   * opts.quick = true なら「録音して配信」: 録音パネルを最初に出し、カテゴリーとタイトルを埋めた状態で開く
+   */
+  function episodeModal(ep, opts = {}) {
     const isNew = !ep;
-    const cats = state.categories.map((c) => `<option value="${c.id}" ${ep && ep.category_id === c.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
-    openModal(`
-      <h3>${isNew ? '新しい配信を登録' : '配信を編集'}</h3>
-      <form id="ep-form" class="form-grid">
-        <div class="field full"><label>タイトル</label><input class="input" name="title" required maxlength="120" value="${esc(ep?.title || '')}" placeholder="例: 9月 全体朝礼（社長メッセージ）"></div>
+    const quick = !!opts.quick && isNew;
+    const preCat = quick ? (opts.category_id || null) : (ep ? ep.category_id : null);
+    const cat = state.categories.find((c) => c.id === preCat);
+    const cats = state.categories.map((c) => `<option value="${c.id}" ${c.id === preCat ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+    const today = new Date();
+    const defaultTitle = quick ? `${today.getMonth() + 1}/${today.getDate()} ${cat ? cat.name : '配信'}` : (ep?.title || '');
+    const metaHtml = `
+        <div class="field full"><label>タイトル</label><input class="input" name="title" required maxlength="120" value="${esc(defaultTitle)}" placeholder="例: 9月 全体朝礼（社長メッセージ）"></div>
         <div class="field"><label>カテゴリー</label><select class="select" name="category_id"><option value="">未分類</option>${cats}</select></div>
-        <div class="field"><label>公開設定</label><select class="select" name="status"><option value="published" ${ep?.status === 'published' ? 'selected' : ''}>すぐに公開する</option><option value="draft" ${!ep || ep.status === 'draft' ? 'selected' : ''}>下書きとして保存</option></select></div>
-        <div class="field full"><label>説明（任意）</label><textarea class="textarea" name="description" maxlength="5000" placeholder="内容の要約、話者、関連資料へのリンクなど">${esc(ep?.description || '')}</textarea></div>
+        <div class="field"><label>公開設定</label><select class="select" name="status"><option value="published" ${quick || ep?.status === 'published' ? 'selected' : ''}>すぐに公開する</option><option value="draft" ${!quick && (!ep || ep.status === 'draft') ? 'selected' : ''}>下書きとして保存</option></select></div>
+        <div class="field full"><label>説明（任意）</label><textarea class="textarea" name="description" maxlength="5000" placeholder="内容の要約、話者、関連資料へのリンクなど" ${quick ? 'style="min-height:56px"' : ''}>${esc(ep?.description || '')}</textarea></div>`;
+    openModal(`
+      <h3>${quick ? `${cat ? esc(cat.name) + 'に' : ''}録音して配信` : isNew ? '新しい配信を登録' : '配信を編集'}</h3>
+      <form id="ep-form" class="form-grid">
+        ${quick ? '' : metaHtml}
         <div class="field full">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
             <label>音声${isNew ? '' : '（差し替える場合のみ）'}</label>
-            <div class="seg" role="tablist"><button type="button" class="active" data-mode="file">ファイルを選ぶ</button><button type="button" data-mode="record">その場で録音</button></div>
+            <div class="seg" role="tablist"><button type="button" class="${quick ? '' : 'active'}" data-mode="file">ファイルを選ぶ</button><button type="button" class="${quick ? 'active' : ''}" data-mode="record">その場で録音</button></div>
           </div>
-          <div id="file-panel">
+          <div id="file-panel" ${quick ? 'hidden' : ''}>
             <label class="upload-box" id="drop"><input type="file" name="file" accept="audio/*,.mp3,.m4a,.wav,.ogg"><b id="file-name">${isNew ? 'ここにドラッグ、またはクリックして選択' : '差し替えるファイルを選択'}</b>mp3 / m4a / wav / ogg、1ファイル 200MB まで</label>
           </div>
-          <div id="rec-panel" class="rec-panel" hidden>
+          <div id="rec-panel" class="rec-panel" ${quick ? '' : 'hidden'}>
             <div class="rec-time" id="rec-time">0:00</div>
             <div class="rec-status" id="rec-status">ボタンを押すと録音が始まります</div>
             <button type="button" class="rec-btn" id="rec-btn" aria-label="録音 / 停止">${ICON.mic}</button>
@@ -514,8 +527,9 @@
           </div>
           <div class="upload-bar" id="upload-bar" hidden><i></i></div>
         </div>
+        ${quick ? metaHtml : ''}
       </form>
-      <div class="foot"><button class="btn ghost" data-close>キャンセル</button><button class="btn primary" id="ep-save">${isNew ? '登録する' : '保存する'}</button></div>`, () => {
+      <div class="foot"><button class="btn ghost" data-close>キャンセル</button><button class="btn primary" id="ep-save">${quick ? '配信する' : isNew ? '登録する' : '保存する'}</button></div>`, () => {
       const R = window.AudioRecorder;
       if (R && R.state !== 'idle') { R.cancel(); toast('録音を破棄しました'); }
     });
@@ -523,6 +537,7 @@
     const fileInput = form.querySelector('input[type=file]');
     const drop = $('#drop');
     if (isNew) form.querySelector('[name=status]').value = 'published';
+    if (quick) form.querySelector('[name=title]').select();
     fileInput.addEventListener('change', () => { if (fileInput.files[0]) $('#file-name').textContent = `${fileInput.files[0].name}（${(fileInput.files[0].size / 1024 / 1024).toFixed(1)} MB）`; });
     ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('drag'); }));
     ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('drag'); }));
@@ -530,7 +545,7 @@
 
     /* ── その場で録音 ── */
     const R = window.AudioRecorder;
-    let mode = 'file';
+    let mode = quick ? 'record' : 'file';
     let recorded = null; // { file, duration, url }
     const segBtns = form.querySelectorAll('.seg button');
     segBtns.forEach((b) => b.addEventListener('click', () => {
@@ -616,11 +631,12 @@
           await uploadAudio(id, file, duration, (p) => { $('#upload-bar > i').style.width = `${Math.round(p * 100)}%`; });
         }
         await api(`/api/admin/episodes/${id}`, { method: 'PUT', json: { ...payload, status: fd.get('status') } });
-        toast(isNew ? '配信を登録しました' : '保存しました');
+        toast(fd.get('status') === 'published' ? '配信しました' : isNew ? '下書きとして保存しました' : '保存しました');
         closeModal();
         await loadCategories();
-        renderRoute();
-      } catch (err) { toast(err.message, true); btn.disabled = false; btn.textContent = isNew ? '登録する' : '保存する'; }
+        if (quick) go(payload.category_id ? `/archive/${payload.category_id}` : '/archive');
+        else renderRoute();
+      } catch (err) { toast(err.message, true); btn.disabled = false; btn.textContent = quick ? '配信する' : isNew ? '登録する' : '保存する'; }
     });
   }
 
@@ -814,6 +830,12 @@
       const id = Number(playBtn.dataset.play);
       const ep = state.episodes.find((x) => x.id === id) || (state.detail && state.detail.episode.id === id ? state.detail.episode : null);
       if (ep) player.load(ep, true);
+      return;
+    }
+    const quick = e.target.closest('[data-quick-record]');
+    if (quick) {
+      if (!state.isAdmin) return;
+      episodeModal(null, { quick: true, category_id: Number(quick.dataset.quickRecord) || null });
       return;
     }
     const open = e.target.closest('[data-open]');
