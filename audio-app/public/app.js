@@ -356,7 +356,7 @@
           </div>
         </div>
         <div class="toolbar">
-          <input class="input" id="search" type="search" placeholder="タイトル・説明で検索" value="${esc(r.q)}">
+          <input class="input" id="search" type="search" placeholder="タイトル・説明・文字起こしから検索" value="${esc(r.q)}">
           <select class="select" id="filter" style="max-width:160px">
             <option value="">すべての状態</option><option value="unheard">未再生</option><option value="partial">途中</option><option value="done">聴了</option>
           </select>
@@ -389,6 +389,7 @@
           </div>
         </div>
         <div class="card ep-desc" style="margin-top:14px">${esc(ep.description)}</div>
+        ${knowledgeHtml(ep)}
         <h3 class="section">コメント <span class="muted small" style="font-family:var(--sans);font-weight:400">${comments.length} 件</span></h3>
         <div class="comments" id="comments">${comments.length ? comments.map(commentHtml).join('') : '<div class="card empty">最初のコメントを書いてみましょう。感想や質問、気づきなど何でも。</div>'}</div>
         <form class="comment-form" id="comment-form" style="margin-top:14px">
@@ -414,6 +415,34 @@
       } catch (err) { toast(err.message, true); btn.disabled = false; }
     });
   }
+  /* 要約・文字起こし・Notion リンク（ナレッジ連携の結果） */
+  function knowledgeHtml(ep) {
+    const st = ep.knowledge_status || 'none';
+    let html = '';
+    if (ep.summary) {
+      html += `<h3 class="section">要約 ${ep.notion_page_url ? `<a class="more" href="${esc(ep.notion_page_url)}" target="_blank" rel="noopener">Notion の議事録DBで開く</a>` : ''}</h3>
+        <div class="card ep-desc">${esc(ep.summary)}</div>`;
+    }
+    if (ep.transcript) {
+      html += `<details class="card transcript"><summary>文字起こし全文を表示</summary><div class="ep-desc">${esc(ep.transcript)}</div></details>`;
+    }
+    if (state.isAdmin) {
+      if (st === 'pending' || st === 'processing') html += `<p class="muted small" style="margin-top:12px">${st === 'processing' ? '文字起こしを処理中です' : '文字起こしを待機中です（5分以内に始まります）'}。終わると要約と Notion のリンクがここに出ます。</p>`;
+      if (st === 'error') html += `<div class="card" style="margin-top:12px;padding:14px 18px;border-color:var(--red)"><b style="color:var(--red)">ナレッジ連携でエラー</b><div class="small muted" style="margin:4px 0 10px">${esc(ep.knowledge_error || '')}</div><button class="btn ghost sm" data-retry="${ep.id}">もう一度処理する</button></div>`;
+      if (st === 'done' && !ep.notion_page_url && ep.knowledge_error) html += `<p class="muted small" style="margin-top:12px">${esc(ep.knowledge_error)}</p>`;
+    }
+    return html;
+  }
+  function knowledgePill(ep) {
+    const st = ep.knowledge_status || 'none';
+    if (ep.status !== 'published') return '<span class="muted small">—</span>';
+    if (st === 'pending') return '<span class="pill">待機中</span>';
+    if (st === 'processing') return '<span class="pill partial">処理中</span>';
+    if (st === 'done') return ep.notion_page_url ? `<a class="pill done" href="${esc(ep.notion_page_url)}" target="_blank" rel="noopener">Notion 済</a>` : '<span class="pill done" title="Notion 未設定のため要約のみ">要約済</span>';
+    if (st === 'error') return `<span class="pill" style="background:var(--red-pale);color:var(--red)" title="${esc(ep.knowledge_error || '')}">エラー</span>`;
+    return '<span class="pill none">未処理</span>';
+  }
+
   function commentHtml(cm) {
     const mine = state.me && cm.member_id === state.me.id;
     return `
@@ -433,12 +462,17 @@
     $('#main').innerHTML = `
       <div class="page">
         <div class="page-head"><div><span class="en">Admin</span><h2>配信管理・視聴状況</h2><p>配信の登録・公開、誰がどこまで聴いたかの確認ができます</p></div>
-          <div style="display:flex;gap:8px">${tab === 'episodes' ? '<button class="btn primary" id="new-ep">＋ 新しい配信</button>' : ''}${tab === 'stats' ? '<a class="btn ghost" id="csv" href="/api/admin/export.csv" download>CSV ダウンロード</a>' : ''}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">${tab === 'episodes' ? '<button class="btn ghost" id="knowledge-run" title="待機中の配信の文字起こし・Notion 登録を今すぐ始める">ナレッジ処理を今すぐ実行</button><button class="btn primary" id="new-ep">＋ 新しい配信</button>' : ''}${tab === 'stats' ? '<a class="btn ghost" id="csv" href="/api/admin/export.csv" download>CSV ダウンロード</a>' : ''}</div>
         </div>
         <div class="tabs">${tabs.map(([k, l]) => `<a class="tab ${tab === k ? 'active' : ''}" href="#/admin/${k}">${l}</a>`).join('')}</div>
         <div id="admin-body"></div>
       </div>`;
-    if (tab === 'episodes') await adminEpisodes();
+    if (tab === 'episodes') {
+      await adminEpisodes();
+      $('#knowledge-run').addEventListener('click', async () => {
+        try { await api('/api/admin/knowledge/run', { method: 'POST' }); toast('処理を開始しました。数分後に一覧を開き直してください'); } catch (err) { toast(err.message, true); }
+      });
+    }
     else if (tab === 'stats') await adminStats();
     else if (tab === 'categories') await adminCategories();
     else if (tab === 'members') await adminMembers();
@@ -448,12 +482,13 @@
     const eps = await loadEpisodes({ include_drafts: 1 });
     $('#admin-body').innerHTML = eps.length ? `
       <div class="table-wrap"><table>
-        <thead><tr><th>配信</th><th>カテゴリー</th><th>状態</th><th>再生 / 聴了</th><th>コメント</th><th>公開日</th><th></th></tr></thead>
+        <thead><tr><th>配信</th><th>カテゴリー</th><th>状態</th><th>ナレッジ</th><th>再生 / 聴了</th><th>コメント</th><th>公開日</th><th></th></tr></thead>
         <tbody>${eps.map((ep) => `
           <tr>
             <td><a href="#/episode/${ep.id}" style="font-weight:600">${esc(ep.title)}</a><div class="muted small">${fmtDur(ep.duration_sec) || '長さ不明'}${ep.has_audio ? '' : ' ・ <span style="color:var(--red)">音声未アップロード</span>'}</div></td>
             <td>${catPill(ep)}</td>
             <td>${ep.status === 'published' ? '<span class="pill done">公開中</span>' : '<span class="pill draft">下書き</span>'}</td>
+            <td>${knowledgePill(ep)}${ep.status === 'published' && ep.has_audio && (ep.knowledge_status === 'error' || ep.knowledge_status === 'done') ? ` <button class="btn ghost sm" data-retry="${ep.id}" title="文字起こしと Notion 登録をやり直す">再処理</button>` : ''}</td>
             <td class="num"><a href="#/admin/stats/${ep.id}">${ep.listener_count || 0} / ${ep.completed_count || 0}</a></td>
             <td class="num">${ep.comment_count || 0}</td>
             <td class="num">${fmtDate(ep.published_at) || '—'}</td>
@@ -468,6 +503,7 @@
     $('#admin-body').addEventListener('click', async (e) => {
       const t = e.target.closest('button');
       if (!t) return;
+      if (t.dataset.retry) return; // 共通ハンドラーで処理
       const ep = eps.find((x) => x.id === Number(t.dataset.edit || t.dataset.toggle || t.dataset.delete));
       if (!ep) return;
       if (t.dataset.edit) episodeModal(ep);
@@ -840,6 +876,15 @@
     }
     const open = e.target.closest('[data-open]');
     if (open) { go(`/episode/${open.dataset.open}`); return; }
+    const retry = e.target.closest('[data-retry]');
+    if (retry) {
+      try {
+        await api(`/api/admin/episodes/${retry.dataset.retry}/knowledge/retry`, { method: 'POST' });
+        toast('文字起こしをやり直します。数分後に更新されます');
+        renderRoute();
+      } catch (err) { toast(err.message, true); }
+      return;
+    }
     const del = e.target.closest('[data-del-comment]');
     if (del) {
       if (!confirm('このコメントを削除しますか？')) return;

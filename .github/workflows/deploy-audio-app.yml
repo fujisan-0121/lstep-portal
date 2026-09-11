@@ -69,6 +69,7 @@ jobs:
           ALLOWED_EMAIL_DOMAINS: ${{ inputs.allowed_email_domains }}
           ALLOWED_EMAILS: ${{ inputs.allowed_emails }}
           ACCESS_TEAM_DOMAIN: ${{ inputs.team_domain }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           WRANGLER_SEND_METRICS: 'false'
         run: node scripts/deploy.mjs
 

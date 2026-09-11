@@ -8,16 +8,23 @@
 import { Hono } from 'hono';
 import type { Context, MiddlewareHandler } from 'hono';
 import { extractAccessToken, verifyAccessJwt } from './auth';
+import { processNext } from './knowledge';
 
 export interface Env {
   DB: D1Database;
   AUDIO: R2Bucket;
   ASSETS: Fetcher;
+  /** Workers AI（文字起こし・要約） */
+  AI?: unknown;
   ENVIRONMENT: string;
   ACCESS_TEAM_DOMAIN: string;
   ACCESS_AUD: string;
   ADMIN_EMAILS: string;
   MAX_UPLOAD_MB?: string;
+  /** ナレッジ連携 */
+  APP_URL?: string;
+  NOTION_DATABASE_ID?: string;
+  NOTION_TOKEN?: string;
   /** ローカル開発専用（.dev.vars）。本番では設定しない */
   DEV_USER_EMAIL?: string;
 }
@@ -172,6 +179,7 @@ app.delete('/api/admin/categories/:id', async (c) => {
 const EPISODE_SELECT = `
   SELECT e.id, e.title, e.description, e.category_id, e.status, e.published_at, e.created_at, e.updated_at,
          e.duration_sec, e.audio_size, e.audio_content_type,
+         e.summary, e.knowledge_status, e.knowledge_error, e.notion_page_url, (e.transcript IS NOT NULL) AS has_transcript,
          (e.audio_key IS NOT NULL) AS has_audio,
          cat.name AS category_name, cat.color AS category_color,
          creator.name AS created_by_name,
@@ -201,8 +209,8 @@ app.get('/api/episodes', async (c) => {
     binds.push(Number(cat));
   }
   if (q) {
-    where.push('(e.title LIKE ? OR e.description LIKE ?)');
-    binds.push(`%${q}%`, `%${q}%`);
+    where.push('(e.title LIKE ? OR e.description LIKE ? OR e.transcript LIKE ? OR e.summary LIKE ?)');
+    binds.push(`%${q}%`, `%${q}%`, `%${q}%`, `%${q}%`);
   }
   const sql = `${EPISODE_SELECT} ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
     ORDER BY COALESCE(e.published_at, e.created_at) DESC, e.id DESC LIMIT 500`;
@@ -215,6 +223,8 @@ app.get('/api/episodes/:id', async (c) => {
   const me = c.get('member');
   const ep = await c.env.DB.prepare(`${EPISODE_SELECT} WHERE e.id = ?`).bind(me.id, id).first<Record<string, unknown>>();
   if (!ep || (ep.status !== 'published' && !c.get('isAdmin'))) return c.json({ error: 'エピソードが見つかりません' }, 404);
+  const tr = await c.env.DB.prepare('SELECT transcript FROM episodes WHERE id = ?').bind(id).first<{ transcript: string | null }>();
+  ep.transcript = tr?.transcript ?? null;
   const { results: comments } = await c.env.DB.prepare(
     `SELECT cm.id, cm.body, cm.created_at, cm.member_id, m.name AS member_name
      FROM comments cm JOIN members m ON m.id = cm.member_id
@@ -256,11 +266,14 @@ app.put('/api/admin/episodes/:id', async (c) => {
     status = body.status;
     if (status === 'published' && !publishedAt) publishedAt = now();
   }
+  // 初めて公開されたら、ナレッジ連携（文字起こし → 要約 → Notion）の対象にする
   await c.env.DB.prepare(
     `UPDATE episodes SET title = ?, description = ?, category_id = ?, duration_sec = COALESCE(?, duration_sec),
-       status = ?, published_at = ?, updated_at = ? WHERE id = ?`,
+       status = ?, published_at = ?, updated_at = ?,
+       knowledge_status = CASE WHEN ? = 'published' AND audio_key IS NOT NULL AND knowledge_status = 'none' THEN 'pending' ELSE knowledge_status END
+     WHERE id = ?`,
   )
-    .bind(v.title, v.description, v.category_id, v.duration_sec, status, publishedAt, now(), id)
+    .bind(v.title, v.description, v.category_id, v.duration_sec, status, publishedAt, now(), status, id)
     .run();
   return c.json({ ok: true, status });
 });
@@ -296,8 +309,12 @@ app.put('/api/admin/episodes/:id/audio', async (c) => {
     return c.json({ error: `ファイルが大きすぎます（上限 ${c.env.MAX_UPLOAD_MB || 200}MB）` }, 413);
   }
   const durationHeader = Number(c.req.header('X-Audio-Duration') ?? 0);
+  // 音声が差し替わったら文字起こしはやり直し（公開中なら待機、下書きなら公開時に）
   await c.env.DB.prepare(
-    `UPDATE episodes SET audio_key = ?, audio_content_type = ?, audio_size = ?, duration_sec = COALESCE(?, duration_sec), updated_at = ? WHERE id = ?`,
+    `UPDATE episodes SET audio_key = ?, audio_content_type = ?, audio_size = ?, duration_sec = COALESCE(?, duration_sec), updated_at = ?,
+       transcript = NULL, summary = NULL, knowledge_error = NULL,
+       knowledge_status = CASE WHEN status = 'published' THEN 'pending' ELSE 'none' END
+     WHERE id = ?`,
   )
     .bind(key, contentType, obj.size, durationHeader > 0 ? durationHeader : null, now(), id)
     .run();
@@ -405,6 +422,35 @@ app.delete('/api/comments/:id', async (c) => {
   return c.json({ ok: true });
 });
 
+/* ───────────────────────── 管理: ナレッジ連携 ───────────────────────── */
+
+/** 文字起こし・Notion 登録をやり直す（次の Cron で処理。すぐ動かす場合は run） */
+app.post('/api/admin/episodes/:id/knowledge/retry', async (c) => {
+  const id = Number(c.req.param('id'));
+  const ep = await c.env.DB.prepare('SELECT status, audio_key FROM episodes WHERE id = ?').bind(id).first<{ status: string; audio_key: string | null }>();
+  if (!ep) return c.json({ error: 'エピソードが見つかりません' }, 404);
+  if (ep.status !== 'published' || !ep.audio_key) return c.json({ error: '公開中で音声がある配信のみ処理できます' }, 400);
+  await c.env.DB.prepare(`UPDATE episodes SET knowledge_status = 'pending', knowledge_error = NULL, knowledge_updated_at = ? WHERE id = ?`).bind(now(), id).run();
+  // 短い音声ならこの場で処理を始める（長いものは Cron が引き継ぐ）
+  c.executionCtx.waitUntil(processNext(c.env).catch((e) => console.error(e)));
+  return c.json({ ok: true });
+});
+
+/** 待機中の配信を今すぐ処理する */
+app.post('/api/admin/knowledge/run', async (c) => {
+  c.executionCtx.waitUntil(processNext(c.env).catch((e) => console.error(e)));
+  return c.json({ ok: true });
+});
+
+app.get('/api/admin/knowledge/config', (c) => {
+  return c.json({
+    ai: !!c.env.AI,
+    notion: !!(c.env.NOTION_TOKEN && c.env.NOTION_DATABASE_ID),
+    notion_database_id: c.env.NOTION_DATABASE_ID || null,
+    app_url: c.env.APP_URL || null,
+  });
+});
+
 /* ───────────────────────── 管理: 視聴状況 ───────────────────────── */
 
 /** エピソードごとの視聴サマリー */
@@ -508,7 +554,24 @@ app.onError((err, c) => {
   return c.json({ error: 'サーバーでエラーが起きました。時間をおいて再度お試しください' }, 500);
 });
 
-export default app;
+/** Cron: 待機中の配信を、時間の許す限り 1 件ずつ処理する（Cron ハンドラーは最長 15 分） */
+async function runKnowledgeCron(env: Env): Promise<void> {
+  const deadline = Date.now() + 12 * 60 * 1000;
+  let n = 0;
+  while (Date.now() < deadline) {
+    const did = await processNext(env);
+    if (!did) break;
+    n++;
+  }
+  console.log(`[knowledge] cron processed ${n} episode(s)`);
+}
+
+export default {
+  fetch: app.fetch,
+  scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(runKnowledgeCron(env));
+  },
+};
 
 /* ───────────────────────── helpers ───────────────────────── */
 

@@ -38,6 +38,16 @@
       ep(7, '雑談回：AIを使いはじめて変わった1日の過ごし方', 5, '肩の力を抜いて聴いてください。朝のルーティンにAIを組み込んだら、何が変わったか。', 25),
       ep(8, '10月 全体朝礼（収録済み・公開前）', 1, '10月の朝礼を事前収録しました。10/1 に公開予定。', 0, 'draft'),
     ];
+    // ナレッジ連携のデモ表示（本番では Workers AI が文字起こし・要約し、Notion に登録する）
+    Object.assign(episodes[0], {
+      knowledge_status: 'done',
+      notion_page_url: 'https://www.notion.so/demo-9-2026',
+      summary: '【概要】\n下期の重点テーマとして「人が変わっても回る仕組み」を各部署で1つずつ作る取り組みを始める。対象は業務フローに限らず、お客様対応のトーク集なども含む。10月の中間共有会で各部署が1つ持ち寄る。\n\n【決定事項】\n- 各部署が下期中に仕組み化の対象を1つ決めて着手する\n- 10月の中間共有会で進捗を共有する\n\n【次アクション】\n- 各部署リーダー: 対象業務を選んで9月末までに藤原へ共有',
+      transcript: 'おはようございます。今日は下期に向けて、一つだけお願いしたいことがあって、それは「人が変わっても回る仕組み」を各部署で一つずつ作ってほしい、ということです。（中略）業務フローだけじゃなくて、お客様対応のトーク集みたいなものも対象にしてもらって大丈夫です。むしろ属人化しやすいところから優先で。十月の中間共有会で、各部署から一つずつ持ち寄ってもらえればと思います。よろしくお願いします。',
+    });
+    Object.assign(episodes[1], { knowledge_status: 'done', notion_page_url: 'https://www.notion.so/demo-ceo-message', summary: '【概要】\n先週の訪問先で「実は困っていて」と打ち明けられた経験から、お客様の困りごとに最初に気づく存在であることの価値を語る。数字より先に現場の一言を拾う姿勢を求める。', transcript: '（デモ用の文字起こし）先週、あるお客様のところに伺ったときに、帰り際に「実は困っていて」と言われまして。' });
+    Object.assign(episodes[2], { knowledge_status: 'processing' });
+    Object.assign(episodes[5], { knowledge_status: 'error', knowledge_error: '文字起こし結果が空でした（無音の可能性）' });
     const play = (episode_id, member_id, ratio, count, days) => ({
       id: episode_id * 100 + member_id, episode_id, member_id,
       position_sec: Math.round(DEMO_DURATION * ratio), max_position_sec: Math.round(DEMO_DURATION * ratio),
@@ -83,6 +93,8 @@
       id: e.id, title: e.title, description: e.description, category_id: e.category_id, status: e.status, published_at: e.published_at,
       created_at: e.created_at, updated_at: e.updated_at, duration_sec: e.duration_sec, audio_size: e.audio_size, audio_content_type: e.audio_content_type,
       has_audio: e.audio_key ? 1 : 0, category_name: cat ? cat.name : null, category_color: cat ? cat.color : null, created_by_name: creator ? creator.name : null,
+      summary: e.summary || null, transcript: e.transcript || null, has_transcript: e.transcript ? 1 : 0,
+      knowledge_status: e.knowledge_status || (e.status === 'published' ? 'pending' : 'none'), knowledge_error: e.knowledge_error || null, notion_page_url: e.notion_page_url || null,
       my_position_sec: p ? p.position_sec : null, my_max_position_sec: p ? p.max_position_sec : null, my_completed: p ? p.completed : null, my_last_played_at: p ? p.last_played_at : null,
       listener_count: db.plays.filter((x) => x.episode_id === e.id).length,
       completed_count: db.plays.filter((x) => x.episode_id === e.id && x.completed).length,
@@ -166,6 +178,17 @@
       }
       if (method === 'DELETE') { db.episodes = db.episodes.filter((x) => x.id !== e.id); db.plays = db.plays.filter((x) => x.episode_id !== e.id); db.comments = db.comments.filter((x) => x.episode_id !== e.id); save(); return respond({ ok: true }); }
     }
+    if ((a = m(/^\/api\/admin\/episodes\/(\d+)\/knowledge\/retry$/)) && method === 'POST') {
+      const e = db.episodes.find((x) => x.id === a[0]); if (!e) return err('見つかりません', 404);
+      e.knowledge_status = 'pending'; e.knowledge_error = null; save();
+      setTimeout(() => { e.knowledge_status = 'done'; e.summary = e.summary || '【概要】\n（デモ）文字起こしと要約が完了しました。本番では Workers AI が生成します。'; e.transcript = e.transcript || '（デモ用の文字起こし）'; e.notion_page_url = e.notion_page_url || 'https://www.notion.so/demo'; save(); }, 2500);
+      return respond({ ok: true });
+    }
+    if (p === '/api/admin/knowledge/run' && method === 'POST') {
+      db.episodes.filter((e) => e.knowledge_status === 'pending').forEach((e) => { e.knowledge_status = 'processing'; });
+      save(); return respond({ ok: true });
+    }
+    if (p === '/api/admin/knowledge/config') return respond({ ai: true, notion: true, notion_database_id: 'demo', app_url: location.origin });
     if (p === '/api/admin/stats') {
       return respond({ total_members: db.members.length, episodes: sortEps(db.episodes).map((e) => { const d = decorate(e, user.id); return { id: e.id, title: e.title, status: e.status, published_at: e.published_at, duration_sec: e.duration_sec, category_name: d.category_name, category_color: d.category_color, listener_count: d.listener_count, completed_count: d.completed_count, comment_count: d.comment_count }; }) });
     }
