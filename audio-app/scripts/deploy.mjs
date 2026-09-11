@@ -139,6 +139,8 @@ function saveCfg() { fs.writeFileSync(cfgPath, cfg); }
   setValue('ACCESS_TEAM_DOMAIN', teamDomain);
   setValue('ACCESS_AUD', app.aud);
   setValue('ADMIN_EMAILS', ADMIN_EMAILS);
+  setValue('APP_URL', `https://${DOMAIN}`);
+  if (process.env.NOTION_DATABASE_ID) setValue('NOTION_DATABASE_ID', process.env.NOTION_DATABASE_ID);
 
   /* 5. ルート */
   if (/\/\/\s*"routes"/.test(cfg)) {
@@ -154,6 +156,14 @@ function saveCfg() { fs.writeFileSync(cfgPath, cfg); }
   sh(`npx wrangler d1 migrations apply ${D1_NAME} --remote`);
   log('デプロイ');
   sh('npx wrangler deploy');
+
+  /* 7. Notion 連携トークン（secret）。未設定なら文字起こしと要約だけ動く */
+  if (process.env.NOTION_TOKEN) {
+    log('Notion トークンを secret に保存');
+    execSync('npx wrangler secret put NOTION_TOKEN', { cwd: root, stdio: ['pipe', 'inherit', 'inherit'], input: process.env.NOTION_TOKEN, env: { ...process.env, CLOUDFLARE_API_TOKEN: TOKEN, CLOUDFLARE_ACCOUNT_ID: ACCOUNT } });
+  } else {
+    console.log('\n  NOTION_TOKEN が無いので Notion 連携は未設定のまま（文字起こしと要約はアプリ内に保存されます）');
+  }
 
   console.log(`\n✅ 完了: https://${DOMAIN}`);
   console.log(`   管理者: ${ADMIN_EMAILS}`);

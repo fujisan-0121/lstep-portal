@@ -40,7 +40,17 @@
     }
   ],
 
+  // 文字起こし（Whisper）と要約（LLM）に使う
+  "ai": { "binding": "AI" },
+
+  // 5 分おきに、公開済みで未処理の配信を 1 件ずつ文字起こし → 要約 → Notion 登録
+  "triggers": { "crons": ["*/5 * * * *"] },
+
   "vars": {
+    // アプリの URL（Notion に貼る「音声を聴く」リンクに使う）
+    "APP_URL": "https://audio.lstepoffcial.com",
+    // Notion 議事録DB の ID（AI秘書室 / 個人議事録DB）。トークンは secret の NOTION_TOKEN
+    "NOTION_DATABASE_ID": "347af18b-85d6-4fe8-8fb9-6c0bd64a6ba4",
     "ENVIRONMENT": "production",
     // Cloudflare Zero Trust のチームドメイン（例: markeline.cloudflareaccess.com）
     "ACCESS_TEAM_DOMAIN": "",

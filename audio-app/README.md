@@ -21,6 +21,27 @@
 
 MP3 変換には LAME の JavaScript 移植 [lamejs](https://github.com/zhuker/lamejs)（LGPL）を `public/vendor/lame.min.js` として同梱しています。LAME: https://lame.sourceforge.net
 
+### ナレッジ連携（Notion 議事録DB）
+
+配信を公開すると、5 分以内に自動で次が動きます（Cron、1 件ずつ）。
+
+1. 文字起こし: Cloudflare Workers AI の Whisper（`@cf/openai/whisper-large-v3-turbo`、日本語）。MP3 はフレーム境界で約 8 分ごとに分割して処理
+2. 要約: Workers AI の LLM で「概要 / 決定事項 / 次アクション」を生成
+3. Notion: 「AI秘書室 / 個人議事録DB」に 1 行作成。会議名 = 配信タイトル、開催日 = 公開日、録音元 = 社内音声、要約、トランスクリプトURL = 配信ページ。本文に概要・決定事項・次アクション・文字起こし全文
+   種別とタグは空欄のまま入れるので、既存の後処理 AI（「[AI秘書] 未処理」ビュー）がそのまま埋めます
+
+アプリ側では、エピソード画面に要約と文字起こし全文、Notion へのリンクが出ます。アーカイブの検索は文字起こしも対象です。
+管理画面の「ナレッジ」列で状態（待機中 / 処理中 / Notion 済 / エラー）を確認でき、「再処理」でやり直せます。
+
+Notion 連携の設定（初回のみ）:
+
+1. https://www.notion.so/profile/integrations → 新しいインテグレーション → 名前「社内音声ライブラリ」、種類は内部 → 作成。「内部インテグレーションシークレット」をコピー
+2. Notion で「AI秘書室」ページを開く → 右上「…」→「接続」→ 作成したインテグレーションを追加（配下の 個人議事録DB にも適用される）
+3. GitHub のリポジトリ Secrets に `NOTION_TOKEN` として登録し、デプロイのワークフローを再実行
+
+`NOTION_TOKEN` が無い間も文字起こしと要約はアプリ内に保存されます（Notion 登録だけ「未設定」）。
+Workers AI を使うため、デプロイ用の API トークンに「Workers AI: 編集」の権限が必要です。
+
 ## 構成
 
 - Cloudflare Workers（Hono）: API と画面の配信。`src/index.ts`
