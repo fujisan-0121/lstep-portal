@@ -1,0 +1,41 @@
+name: CI
+# audio-app の型チェックと単体テスト。PR と main への push で動く
+# クロス査読の前提となる「壊れていないこと」の最低限の確認
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  audio-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: audio-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: audio-app/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Guard against secrets and Access bypass
+        run: |
+          set -e
+          if grep -q '"preview_urls": *true' wrangler.jsonc || grep -q '"workers_dev": *true' wrangler.jsonc; then
+            echo "::error::wrangler.jsonc の preview_urls / workers_dev は false でなければなりません（Access を経由しない入口を作らない）"
+            exit 1
+          fi
+          if git ls-files | grep -E '(^|/)\.dev\.vars$|(^|/)\.env($|\.)|\.(pem|key)$' | grep -v '\.example$'; then
+            echo "::error::秘密情報のファイルがコミットされています"
+            exit 1
+          fi
+          echo "ok"
