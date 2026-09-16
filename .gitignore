@@ -1,0 +1,27 @@
+# 秘密情報（CI の guard と同じ範囲。コミット前にローカルで止める）
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+.envrc
+.npmrc
+credentials*.json
+id_rsa
+id_ed25519
+id_ecdsa
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.jks
+*.keystore
+
+# 依存とビルド
+node_modules/
+.wrangler/
+dist/
+*.log
+.DS_Store

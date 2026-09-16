@@ -8,8 +8,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   audio-app:
     runs-on: ubuntu-latest
@@ -42,12 +42,17 @@ jobs:
           set -euo pipefail
           cfg=audio-app/wrangler.jsonc
           test -f "$cfg" || { echo "::error::$cfg が見つかりません（検査対象を移動したときは本ワークフローも更新すること）"; exit 1; }
+          # 行頭または空白の直後の /* だけをブロックコメントとみなす（"/api/*" のようなパスは対象外）
+          if grep -Eq '(^|[[:space:]])/\*' "$cfg"; then
+            echo "::error::$cfg にブロックコメント（/* */）があります。行単位の検査が誤判定するため // を使うこと"
+            exit 1
+          fi
           for key in preview_urls workers_dev; do
-            if grep -Eq "^[^/]*\"$key\"[[:space:]]*:[[:space:]]*true" "$cfg"; then
+            if grep -Eq "^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*true" "$cfg"; then
               echo "::error::$cfg の $key が true です（Access を経由しない入口ができます）"
               exit 1
             fi
-            if ! grep -Eq "^[^/]*\"$key\"[[:space:]]*:[[:space:]]*false" "$cfg"; then
+            if ! grep -Eq "^[[:space:]]*\"$key\"[[:space:]]*:[[:space:]]*false" "$cfg"; then
               echo "::error::$cfg に \"$key\": false の明示がありません（省略時の既定は有効側です）"
               exit 1
             fi
@@ -58,7 +63,7 @@ jobs:
           set -euo pipefail
           if git ls-files \
             | grep -E '(^|/)\.dev\.vars($|\.)|(^|/)\.env($|\.)|(^|/)\.envrc$|(^|/)id_(rsa|ed25519|ecdsa)($|\.)|\.(pem|key|p12|pfx|p8|jks)$' \
-            | grep -Ev '\.(example|sample|template|dist)$'; then
+            | grep -Ev '\.(example|sample|template|dist|pub)$'; then
             echo "::error::秘密情報のファイル名がコミットされています。一度 push した秘密は削除では戻らないので、鍵をローテーションすること"
             exit 1
           fi

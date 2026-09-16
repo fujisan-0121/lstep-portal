@@ -9,8 +9,10 @@
 - 禁止はファイルだけでなく、Issue 本文、PR の説明、コミットメッセージ、CI のログにも及ぶ。CI の検査はファイル名しか見ない
 - トークン、`.dev.vars`（環境別の `.dev.vars.production` なども含む）、`.env`、鍵ファイルは絶対にコミットしない（CI が名前で検査する）。一度 push した秘密は削除しても履歴に残るので、その鍵はローテーションする
 - D1 のダンプや SQL のシード、R2 のオブジェクト一覧、音声ファイル、受講者やメンバーの名簿・メールアドレスなど、データそのものをコミットしない（Vault の「個人情報・会員情報を増やさない」と同じ）
-- `index.html` と同じ階層は GitHub Pages で全世界に配信される。運用メモ、設計書、環境値をここに置かない
+- `index.html` を配信している GitHub Pages の公開元（ブランチとディレクトリ）配下は、サブディレクトリも含めて全世界に配信される。公開元が root なら `audio-app/` 以下も配信対象。運用メモ、設計書、環境値をそこに置かない。private 化しても Pages の公開元が残っていれば配信は公開のままなので、分離時に Pages の設定も確認する
 - ワークフローで `pull_request_target` と `workflow_run` を使わない。fork からの PR に secrets を触らせる経路になる。デプロイは `workflow_dispatch` のみ
+- secrets を使うワークフローを追加するときは、その時点で Actions を commit SHA で固定する（現状の CI は secrets 不使用・contents: read のため見送っている）
+- CI の検査は GitHub 側で required status check に設定して初めて強制力を持つ。ブランチ保護が入るまでは、マージ前に CI の結果を目視する
 
 ## audio-app
 
