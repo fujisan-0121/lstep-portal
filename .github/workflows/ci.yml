@@ -93,6 +93,7 @@ jobs:
           field() { printf '%s\n' "$PR_BODY" | tr -d '\r' | grep -E "^[[:space:]]*-[[:space:]]*$1[^:：]*[:：]" | head -n1 | sed -E 's/^[^:：]*[:：][[:space:]]*//; s/[[:space:]]+$//' || true; }
           tool=$(field '査読ツール'); p01=$(field 'P0 / P1')
           fail=0
-          if [ -z "$tool" ] || printf '%s\n' "$tool" | grep -Eqi '^(|-|ー|なし|無し|未実施|未|todo|tbd|n/?a)$'; then echo "::error::PR 本文の「査読ツール」が未記入です"; fail=1; fi
-          if [ -z "$p01" ] || printf '%s\n' "$p01" | grep -Eqi '^(|-|ー|未実施|未|todo|tbd|n/?a)$'; then echo "::error::PR 本文の「P0 / P1 の有無と対応」が未記入です"; fail=1; fi
+          pending='未実施|未査読|依頼中|依頼予定|応答待ち|^(todo|tbd|n/?a)$'
+          if [ -z "$tool" ] || printf '%s\n' "$tool" | grep -Eq '^(-|ー|なし|無し)$' || printf '%s\n' "$tool" | grep -Eqi "$pending"; then echo "::error::PR 本文の「査読ツール」が未記入です"; fail=1; fi
+          if [ -z "$p01" ] || printf '%s\n' "$p01" | grep -Eq '^(-|ー)$' || printf '%s\n' "$p01" | grep -Eqi "$pending"; then echo "::error::PR 本文の「P0 / P1 の有無と対応」が未記入です"; fail=1; fi
           exit $fail
