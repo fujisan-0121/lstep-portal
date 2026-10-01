@@ -84,6 +84,8 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          # 全角コロンや「ー」をバイト単位で扱わないよう UTF-8 に固定する（C ロケールの誤判定防止）
+          LC_ALL: C.UTF-8
         run: |
           set -euo pipefail
           changed=$(git diff --name-only --no-renames --diff-filter=ACMRT "$BASE_SHA" HEAD)
