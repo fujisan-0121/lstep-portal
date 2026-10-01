@@ -3,6 +3,8 @@ name: CI
 # クロス査読の前提となる「壊れていないこと」の最低限の確認
 on:
   pull_request:
+    # edited: PR 本文の査読欄を埋めたら再判定する
+    types: [opened, synchronize, reopened, edited]
   push:
     branches: [main]
 permissions:
@@ -68,3 +70,32 @@ jobs:
             exit 1
           fi
           echo "secrets: ok"
+
+  # 査読対象のファイルを変えた PR で、本文の査読欄が空なら落とす（Vault の CROSS_REVIEW.md）
+  review-gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: 要査読の変更に査読記録があること
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          # 全角コロンや「ー」をバイト単位で扱わないよう UTF-8 に固定する（C ロケールの誤判定防止）
+          LC_ALL: C.UTF-8
+        run: |
+          set -euo pipefail
+          changed=$(git diff --name-only --no-renames --diff-filter=ACMRT "$BASE_SHA" HEAD)
+          targets=$(printf '%s\n' "$changed" | grep -E '^(audio-app/(src|migrations|scripts)/|audio-app/wrangler\.jsonc$|audio-app/package(-lock)?\.json$|\.github/|scripts/)|(^|/)(AGENTS|CLAUDE)\.md$|\.(ts|tsx|js|mjs|cjs|sql|sh|ya?ml|jsonc?)$' || true)
+          if [ -z "$targets" ]; then echo "要査読の変更なし"; exit 0; fi
+          echo "要査読の変更:"; printf '%s\n' "$targets"
+          field() { printf '%s\n' "$PR_BODY" | tr -d '\r' | grep -E "^[[:space:]]*-[[:space:]]*$1[^:：]*[:：]" | head -n1 | sed -E 's/^[^:：]*[:：][[:space:]]*//; s/[[:space:]]+$//' || true; }
+          tool=$(field '査読ツール'); p01=$(field 'P0 / P1')
+          fail=0
+          pending='未実施|未査読|依頼中|依頼予定|応答待ち|^(todo|tbd|n/?a)$'
+          if [ -z "$tool" ] || printf '%s\n' "$tool" | grep -Eq '^(-|ー|なし|無し)$' || printf '%s\n' "$tool" | grep -Eqi "$pending"; then echo "::error::PR 本文の「査読ツール」が未記入です"; fail=1; fi
+          if [ -z "$p01" ] || printf '%s\n' "$p01" | grep -Eq '^(-|ー)$' || printf '%s\n' "$p01" | grep -Eqi "$pending"; then echo "::error::PR 本文の「P0 / P1 の有無と対応」が未記入です"; fail=1; fi
+          exit $fail
