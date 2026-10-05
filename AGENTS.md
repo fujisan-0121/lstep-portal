@@ -17,7 +17,7 @@
 ## audio-app
 
 - 認証は Cloudflare Access のみ。独自認証を作らない。`wrangler.jsonc` の `preview_urls` と `workers_dev` は false を明示したまま（省略すると既定で有効になる。CI が false の明示を検査する）
-- `wrangler.jsonc`、`src/auth.ts`、`migrations/`、`.github/workflows/`、`scripts/deploy.mjs` の変更はクロス査読の対象。PR を開き、実装したエンジンの逆側（Claude Code 実装なら Copilot または Codex）に査読させる
+- `wrangler.jsonc`、`src/auth.ts`、`migrations/`、`.github/workflows/`、`scripts/deploy.mjs` の変更はクロス査読の対象。PR を開き、実装したエンジンの逆側に査読させる（Claude Code 実装なら別ベンダーの査読が標準。手順は CLAUDE.md と Vault の CROSS_REVIEW.md）
 - 変更前に `npm run typecheck` と `npm test` を通す。CI（`.github/workflows/ci.yml`）も同じことを確認する
 - main へ直接コミットしない。ブランチで作業して PR を開く
 
