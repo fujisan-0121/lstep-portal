@@ -107,6 +107,23 @@ const requireAdmin: MiddlewareHandler<{ Bindings: Env; Variables: Vars }> = asyn
   await next();
 };
 
+/**
+ * 別サイトからの書き込み（CSRF）を止める。Access の Cookie はブラウザが自動で付けるため、
+ * 罠ページのフォームから POST されると本人の権限で通ってしまう。
+ * ブラウザが送る Sec-Fetch-Site / Origin が別サイトを示すときだけ拒否する（curl などヘッダーを付けないクライアントは Cookie を持たないので対象外）
+ */
+const sameOriginWrites: MiddlewareHandler<{ Bindings: Env; Variables: Vars }> = async (c, next) => {
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
+    const site = c.req.header('Sec-Fetch-Site');
+    const origin = c.req.header('Origin');
+    if ((site && site !== 'same-origin') || (origin && origin !== new URL(c.req.url).origin)) {
+      return c.json({ error: '別のサイトからの操作は受け付けていません' }, 403);
+    }
+  }
+  await next();
+};
+
+app.use('/api/*', sameOriginWrites);
 app.use('/api/*', authenticate);
 app.use('/api/admin/*', requireAdmin);
 
@@ -611,7 +628,9 @@ function extFor(ct: string): string {
 }
 
 function csvCell(v: unknown): string {
-  const s = v == null ? '' : String(v);
+  let s = v == null ? '' : String(v);
+  // 表示名やタイトルが = + - @ などで始まると、Excel が数式として実行する（CSV インジェクション）。先頭に ' を付けて文字列として扱わせる
+  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
