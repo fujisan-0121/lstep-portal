@@ -110,13 +110,17 @@ const requireAdmin: MiddlewareHandler<{ Bindings: Env; Variables: Vars }> = asyn
 /**
  * 別サイトからの書き込み（CSRF）を止める。Access の Cookie はブラウザが自動で付けるため、
  * 罠ページのフォームから POST されると本人の権限で通ってしまう。
- * ブラウザが送る Sec-Fetch-Site / Origin が別サイトを示すときだけ拒否する（curl などヘッダーを付けないクライアントは Cookie を持たないので対象外）
+ * ブラウザが送る Sec-Fetch-Site / Origin が別サイトを示すときは拒否する。
+ * Access の Cookie を持っているのに両方とも無いとき（古いブラウザや一部の WebView）も、同じサイトからと確かめられないので拒否する。
+ * Cookie を持たない curl やスクリプトは CSRF の踏み台にならないので通す
  */
 const sameOriginWrites: MiddlewareHandler<{ Bindings: Env; Variables: Vars }> = async (c, next) => {
   if (!['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
     const site = c.req.header('Sec-Fetch-Site');
     const origin = c.req.header('Origin');
-    if ((site && site !== 'same-origin') || (origin && origin !== new URL(c.req.url).origin)) {
+    const crossSite = (site && site !== 'same-origin') || (origin && origin !== new URL(c.req.url).origin);
+    const unverifiedBrowser = !site && !origin && /(?:^|;\s*)CF_Authorization=/.test(c.req.header('Cookie') ?? '');
+    if (crossSite || unverifiedBrowser) {
       return c.json({ error: '別のサイトからの操作は受け付けていません' }, 403);
     }
   }
@@ -630,7 +634,7 @@ function extFor(ct: string): string {
 function csvCell(v: unknown): string {
   let s = v == null ? '' : String(v);
   // 表示名やタイトルが = + - @ などで始まると、Excel が数式として実行する（CSV インジェクション）。先頭に ' を付けて文字列として扱わせる
-  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  if (typeof v === 'string' && /^[=+\-@\t\r\n]/.test(s)) s = `'${s}`;
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
