@@ -346,7 +346,7 @@
     $('#main').innerHTML = `
       <div class="page">
         <div class="page-head">
-          <div><span class="en">Archive</span><h2>${cat ? esc(cat.name) : 'すべての配信'}</h2><p>${cat ? `${cat.name} の配信 ${eps.length} 件` : `過去の配信 ${eps.length} 件。カテゴリーやキーワードで絞り込めます`}</p></div>
+          <div><span class="en">Archive</span><h2>${cat ? esc(cat.name) : 'すべての配信'}</h2><p>${cat ? `${esc(cat.name)} の配信 ${eps.length} 件` : `過去の配信 ${eps.length} 件。カテゴリーやキーワードで絞り込めます`}</p></div>
           ${state.isAdmin ? `<button class="btn primary" type="button" data-quick-record="${cat ? cat.id : ''}"><span class="ico">${ICON.mic}</span>${cat ? esc(cat.name) + 'に' : ''}録音して配信</button>` : ''}
         </div>
         <div class="toolbar">

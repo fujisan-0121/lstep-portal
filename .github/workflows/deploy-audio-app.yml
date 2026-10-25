@@ -27,6 +27,10 @@ on:
         required: false
         default: ''
 
+# GITHUB_TOKEN はチェックアウトにしか使わない。既定（リポジトリ設定次第で書き込み可）に頼らず読み取りに絞る
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-audio-app
   cancel-in-progress: false
@@ -39,9 +43,10 @@ jobs:
       run:
         working-directory: audio-app
     steps:
-      - uses: actions/checkout@v4
+      # secrets を扱うので Actions はタグではなく commit SHA で固定する（タグは付け替えられる。AGENTS.md）
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: npm
@@ -54,8 +59,12 @@ jobs:
         run: npm run typecheck
 
       - name: Check secrets
+        # 値は環境変数経由で渡す（run に ${{ }} で直接埋め込むと、値がそのままシェルのコードとして解釈される）
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] || [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::error::リポジトリシークレット CLOUDFLARE_API_TOKEN と CLOUDFLARE_ACCOUNT_ID を設定してください（Settings → Secrets and variables → Actions）"
             exit 1
           fi
@@ -74,9 +83,14 @@ jobs:
         run: node scripts/deploy.mjs
 
       - name: Summary
+        # 入力値は環境変数経由で渡す（run に直接埋め込むとシェル注入になる）
+        env:
+          AUDIO_DOMAIN: ${{ inputs.domain }}
+          ADMIN_EMAILS: ${{ inputs.admin_emails }}
+          ALLOWED_EMAIL_DOMAINS: ${{ inputs.allowed_email_domains }}
         run: |
           echo "## 社内音声ライブラリ デプロイ完了" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- URL: https://${{ inputs.domain }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- 管理者: ${{ inputs.admin_emails }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- ログイン許可: @${{ inputs.allowed_email_domains }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- URL: https://$AUDIO_DOMAIN" >> "$GITHUB_STEP_SUMMARY"
+          echo "- 管理者: $ADMIN_EMAILS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- ログイン許可: @$ALLOWED_EMAIL_DOMAINS" >> "$GITHUB_STEP_SUMMARY"
